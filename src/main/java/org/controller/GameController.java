@@ -2,10 +2,8 @@ package org.controller;
 
 import com.google.gson.Gson;
 import org.model.BoardModel;
-import org.model.ConcurrentStack;
-import org.model.MapModel;
+import org.util.MapModel;
 import org.model.TopList;
-import org.view.GameScreen;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -16,10 +14,20 @@ import java.util.ArrayList;
  * movement, and tracking player turns.
  */
 public class GameController {
-    private boolean player1 = true; //1 - light; 2 - dark ; true - 1; false -2
+
+    //in the start stage, any (one) empty space works fine, as a player can place on any tile basically
+    //in the game stage, we need to check the space pair the player picked, as it easily can mark a invalid, in which case, we give the control back to the same player
+    enum Stage {
+        START,
+        GAME
+    }
+
+    private GameClient player1;
+    private GameClient player2;
+
+
     public BoardModel boardModel;
-    private GameScreen gameScreen;
-    private ConcurrentStack<Integer> pressed;
+
     private int player1Pieces;
     private int player2Pieces;
     private boolean invalid = true;
@@ -31,43 +39,37 @@ public class GameController {
      * @param mapModel the model representing the game map
      * @param p        the stack used to track user inputs
      * @param gS       the screen responsible for rendering the game UI
-     * @throws InterruptedException if interrupted while waiting for user input
      */
-    public GameController(MapModel mapModel, ConcurrentStack<Integer> p, GameScreen gS) throws InterruptedException {
+    public GameController(MapModel mapModel, GameClient player1, GameClient player2) {
         boardModel = new BoardModel(mapModel.fields, mapModel.groups);
-        pressed = p;
-        gameScreen = gS;
         player1Pieces = player2Pieces = mapModel.pieces;
 
-        gameScreen.phaseUp(); //startphase
-        startPhase(mapModel.pieces);
+        player1.setGameController(this);
+        player2.setGameController(this);
 
-        gameScreen.phaseUp(); //gamephase
-        gamePhase();
 
-        gameScreen.winScreen(player1);
-        endGame();
     }
+
 
     /**
      * Switches the active player.
      */
     private void switchPlayer() {
-        player1 = !player1;
-        gameScreen.changePlayer();
+
     }
+}
 
     /**
      * Handles the start phase where players alternately place their pieces on the board.
      *
      * @param piecesPerPlayer the number of pieces each player has
-     * @throws InterruptedException if interrupted while waiting for user input
      */
-    public void startPhase(int piecesPerPlayer) throws InterruptedException {
+   /* public void startPhase(int piecesPerPlayer)  {
         /*
             ket jatekos felvaltva valaszt mezoket
             pPP*2-szer fut le
          */
+    /*
         for (int i = 0; i < piecesPerPlayer * 2; i++) {
             BoardModel.Color color;
             boolean valid = false;
@@ -77,7 +79,7 @@ public class GameController {
                     color = player1 ? BoardModel.Color.LIGHT : BoardModel.Color.DARK;
                     putPiece(p, color);
                     valid = true;
-                    gameScreen.putPiecesPlayer(player1);
+                    initGameScreen.putPiecesPlayer(player1);
                     if (boardModel.checkForMill(p)) {
                         mill();
                     }
@@ -86,13 +88,14 @@ public class GameController {
             }
         }
     }
+    */
 
     /**
      * Handles the main game phase where players move pieces and attempt to win.
      *
      * @throws InterruptedException if interrupted while waiting for user input
      */
-
+/*
     public void gamePhase() throws InterruptedException {
         boolean running = true;
         notEnclosed = true;
@@ -100,20 +103,21 @@ public class GameController {
             if (player1Pieces < 3 || player2Pieces < 3) {
                 running = false;
                 /*System.out.print("GAME OVER, ");
-                System.out.println(player1 ? "DARK WON" : "LIGHT WON");*/
+                System.out.println(player1 ? "DARK WON" : "LIGHT WON");
             } else if (step() && notEnclosed) {
                 mill();
             }
             switchPlayer();
         }
     }
+    */
 
     /**
      * Ends the game, updates the leaderboard, and waits for user acknowledgment.
      *
      * @throws InterruptedException if interrupted while waiting for user input
      */
-    public void endGame() throws InterruptedException {
+  /*  public void endGame() throws InterruptedException {
         String name = player1 ? "DARK" : "LIGHT";
         try {
             FileReader fr = new FileReader("toplist.json");
@@ -130,17 +134,20 @@ public class GameController {
         pressed.pop();
     }
 
+    */
+
+
     /**
      * Handles the logic when a player forms a mill and removes an opponent's piece.
      *
      * @throws InterruptedException if interrupted while waiting for user input
      */
-    public void mill() throws InterruptedException {
+   /* public void mill() throws InterruptedException {
         boolean valid = false;
         ArrayList<Integer> possibleChoices;
         Integer p;
         possibleChoices = boardModel.getFields(player1 ? BoardModel.Color.DARK : BoardModel.Color.LIGHT, false);
-        gameScreen.putPieces(possibleChoices, player1 ? BoardModel.Color.PICK_DARK : BoardModel.Color.PICK_LIGHT);
+        initGameScreen.putPieces(possibleChoices, player1 ? BoardModel.Color.PICK_DARK : BoardModel.Color.PICK_LIGHT);
         if (possibleChoices.isEmpty()) return;
         if (player1) player2Pieces--;
         else player1Pieces--;
@@ -152,8 +159,8 @@ public class GameController {
         while (!valid) {
             p = pressed.pop();
             if (possibleChoices.contains(p)) {
-                gameScreen.putPieces(possibleChoices, player1 ? BoardModel.Color.DARK : BoardModel.Color.LIGHT);
-                gameScreen.pickPiecesPlayer(player1);
+                initGameScreen.putPieces(possibleChoices, player1 ? BoardModel.Color.DARK : BoardModel.Color.LIGHT);
+                initGameScreen.pickPiecesPlayer(player1);
                 putPiece(p, BoardModel.Color.BLANK);
                 valid = true;
             }
@@ -166,7 +173,7 @@ public class GameController {
      * @return true if the player forms a mill during the turn
      * @throws InterruptedException if interrupted while waiting for user input
      */
-    public boolean step() throws InterruptedException {
+ /*   public boolean step() throws InterruptedException {
         BoardModel.Color basic;
         BoardModel.Color movable;
         BoardModel.Color chosen;
@@ -194,11 +201,11 @@ public class GameController {
         if (filteredList.isEmpty()) {
             //THE OTHER PLAYER WON
 
-            gameScreen.winScreen(player1);
+            initGameScreen.winScreen(player1);
             endGame();
         }
 
-        filteredList.forEach(i -> gameScreen.putPiece(i, movable));
+        filteredList.forEach(i -> initGameScreen.putPiece(i, movable));
 
         while (invalid) {
             p = pressed.pop();
@@ -213,10 +220,10 @@ public class GameController {
                     ArrayList<Integer> neighbouringAll = boardModel.getNeighbouring(p);
                     neighbouringBLANK = boardModel.filterFieldsByColor(neighbouringAll, BoardModel.Color.BLANK);
                 }
-                filteredList.forEach(i -> gameScreen.putPiece(i, movable));
-                gameScreen.putPiece(p, chosen);
-                gameScreen.putPieces(list, BoardModel.Color.BLANK);
-                gameScreen.putPieces(neighbouringBLANK, BoardModel.Color.CHOOSABLE);
+                filteredList.forEach(i -> initGameScreen.putPiece(i, movable));
+                initGameScreen.putPiece(p, chosen);
+                initGameScreen.putPieces(list, BoardModel.Color.BLANK);
+                initGameScreen.putPieces(neighbouringBLANK, BoardModel.Color.CHOOSABLE);
                 ret = move(p, neighbouringBLANK, filteredList, list, movable, basic, chosen);
             }
         }
@@ -236,27 +243,27 @@ public class GameController {
      * @return true if the piece movement forms a mill
      * @throws InterruptedException if interrupted while waiting for user input
      */
-    private boolean move(Integer p, ArrayList<Integer> neighbouringBLANK, ArrayList<Integer> filteredList, ArrayList<Integer> list, BoardModel.Color movable, BoardModel.Color basic, BoardModel.Color chosen) throws InterruptedException {
+  /*  private boolean move(Integer p, ArrayList<Integer> neighbouringBLANK, ArrayList<Integer> filteredList, ArrayList<Integer> list, BoardModel.Color movable, BoardModel.Color basic, BoardModel.Color chosen) throws InterruptedException {
         boolean ret = false;
         boolean toInvalid = true;
         Integer p2;
         while (toInvalid) {
             p2 = pressed.pop();
             if (p.equals(p2)) { //if they chose the same place, we revert back to the previous phase
-                gameScreen.putPieces(filteredList, movable);
-                gameScreen.putPieces(list, BoardModel.Color.BLANK);
+                initGameScreen.putPieces(filteredList, movable);
+                initGameScreen.putPieces(list, BoardModel.Color.BLANK);
                 toInvalid = false;
             } else if (neighbouringBLANK.contains(p2)) { //if it is blank
                 ret = boardModel.movePiece(p, p2);
-                gameScreen.putPieces(neighbouringBLANK, BoardModel.Color.BLANK);
-                gameScreen.putPieces(filteredList, basic);
-                gameScreen.putPiece(p, BoardModel.Color.BLANK);
-                gameScreen.putPiece(p2, basic);
+                initGameScreen.putPieces(neighbouringBLANK, BoardModel.Color.BLANK);
+                initGameScreen.putPieces(filteredList, basic);
+                initGameScreen.putPiece(p, BoardModel.Color.BLANK);
+                initGameScreen.putPiece(p2, basic);
                 invalid = false;
                 toInvalid = false;
             } else if (filteredList.contains(p2)) { //if its a movable piece, make it the focused piece
-                gameScreen.putPiece(p, movable);
-                gameScreen.putPiece(p2, chosen);
+                initGameScreen.putPiece(p, movable);
+                initGameScreen.putPiece(p2, chosen);
                 toInvalid = false;
                 pressed.push(p2);
             }
@@ -270,8 +277,8 @@ public class GameController {
      * @param where the position on the board
      * @param what  the color of the piece
      */
-    private void putPiece(int where, BoardModel.Color what) {
+   /* private void putPiece(int where, BoardModel.Color what) {
         boardModel.putPiece(where, what);
-        gameScreen.putPiece(where, what);
-    }
-}
+        initGameScreen.putPiece(where, what);
+    }*/
+

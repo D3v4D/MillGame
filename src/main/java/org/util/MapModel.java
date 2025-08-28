@@ -1,6 +1,4 @@
-package org.model;
-
-import org.view.*;
+package org.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,14 +15,14 @@ public class MapModel {
      * A list of positions on the map, represented as tuples of coordinates.
      * Each position corresponds to a potential piece location.
      */
-    public ArrayList<GameScreen.IntTuple> locationList = new ArrayList<>();
+    public ArrayList<IntTuple> locationList = new ArrayList<>();
 
     /**
      * A list of lines connecting the positions on the map.
      * Each line represents a path between two positions.
      * Note: this is only mean for aesthetical purposes
      */
-    public ArrayList<GameScreen.Line> lineList = new ArrayList<>();
+    public ArrayList<Line> lineList = new ArrayList<>();
 
     /**
      * A mapping of positions to their connected neighbors.

@@ -1,5 +1,7 @@
 package org.model;
 
+import org.util.MapModel;
+
 /**
  * Represents the current state of the game.
  * Contains the map model and a stack of pressed inputs for managing game actions.

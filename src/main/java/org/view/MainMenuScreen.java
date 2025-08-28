@@ -2,14 +2,19 @@ package org.view;
 
 
 import org.controller.*;
-import org.model.Color;
 import org.view.base.ComponentGenerator;
+
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+
 
 /**
  * Represents the initial graphical user interface (GUI) for the game.
  * It provides options to start a game, load a save, view the toplist, choose a map, or exit the game.
  */
 public class MainMenuScreen {
+
+    ExecutorService backendPool;
 
     /**
      * Reference to the main controller for initializing various game components.
@@ -26,8 +31,8 @@ public class MainMenuScreen {
      *
      * @param init The main controller that manages the game initialization logic.
      */
-    public MainMenuScreen(Initializer init, ComponentGenerator componentGenerator) {
-        int x = 800, y =450;
+    public MainMenuScreen(Initializer init, ComponentGenerator componentGenerator, ExecutorService backendPool) {
+        int x = 800, y = 450;
 
         this.initializer = init;
 
@@ -35,31 +40,33 @@ public class MainMenuScreen {
 
         componentGenerator.generateBase(x, y);
 
-        componentGenerator.paintBackground(0, 0, x, y, 0, 0, 0, y, new Color(230, 230, 230), new Color(50, 50, 50));
+        componentGenerator.paintBackground(0, 0, x, y, 0, 0, 0, y, new ComponentGenerator.Color(230, 230, 230), new ComponentGenerator.Color(50, 50, 50), 0);
 
-        int startButtonId = componentGenerator.addButton("Start Game On ".concat(initializer.getCurrentMap()), 200, 50, 400, 50, () -> {
-            componentGenerator.hide();
-            initializer.loadMap();
-            startGame();
-        });  //we save these two buttons' id, so we can modify their text in the future
+        int startButtonId = componentGenerator.addButton("Start Game On ".concat(initializer.getCurrentMap()), 200, 50, 400, 50,
+            () -> backendPool.execute(() ->{
+                componentGenerator.hide();
+                initializer.loadMap();
+                startGame();
+        }), 10);  //we save these two buttons' id, so we can modify their text in the future
 
-        int loadButtonId = componentGenerator.addButton("Load Game (".concat(initializer.getCurrentSave().concat(")")), 200, 125, 400, 50, () -> {
-            componentGenerator.hide();
-            initializer.loadGame();
-            startGame();
-        });
+        int loadButtonId = componentGenerator.addButton("Load Game (".concat(initializer.getCurrentSave().concat(")")), 200, 125, 400, 50,
+            () -> backendPool.execute(()-> {
+                componentGenerator.hide();
+                initializer.loadGame();
+                startGame();
+        }), 10);
 
         componentGenerator.addButton("Exit game", 200, 275, 400, 50, () -> {
             System.exit(0);
-        });
+        }, 10);
 
         componentGenerator.addButton("Choose Map", 600, 50, 100, 50, () -> {
             chooseMap(startButtonId);
-        });
+        }, 10);
 
         componentGenerator.addButton("Choose Save", 600, 125, 100, 50, () -> {
             chooseSave(loadButtonId);
-        });
+        }, 10);
 
         componentGenerator.show();
     }
@@ -95,7 +102,8 @@ public class MainMenuScreen {
     public void startGame() {
         try {
             hide();
-            initializer.gameScreen = new GameScreen(initializer.pressed, initializer.mapModel, initializer);
+
+            initializer.initGameScreen = new InitGameScreen(initializer.pressed, initializer.mapModel, initializer);
             initializer.stillNotInstantiated = false;
             initializer.initialized();
 
@@ -112,12 +120,14 @@ public class MainMenuScreen {
             mapChooser = componentGenerator.copy();
             mapChooser.generateBase(300, 150);
 
+            mapChooser.paintBackground(0, 0, 300, 150, 0, 0, 300, 150, new ComponentGenerator.Color(200, 200, 255), new ComponentGenerator.Color(100, 100, 200), 0);
+
             mapChooser.addComboBox(initializer.maps, initializer.currentMap, 50, 25, 200, 25, (String map) -> {
                 initializer.currentMap = map;
                 startButtonText(startButtonId);
-            });
+            }, 10);
 
-            mapChooser.addButton("OK", 100, 75, 100, 25, () -> mapChooser.hide());
+            mapChooser.addButton("OK", 100, 75, 100, 25, () -> mapChooser.hide(), 10);
         }
 
         mapChooser.show();
@@ -132,12 +142,15 @@ public class MainMenuScreen {
             saveChooser = componentGenerator.copy();
             saveChooser.generateBase(300, 150);
 
+            saveChooser.paintBackground(0, 0, 300, 150, 0, 0, 300, 150, new ComponentGenerator.Color(255, 200, 200), new ComponentGenerator.Color(200, 100, 100), 0);
+
+
             saveChooser.addComboBox(initializer.saves, initializer.currentSave, 50, 25, 200, 25, (String save) -> {
                 initializer.currentSave = save;
                 loadButtonText(loadButtonId);
-            });
+            }, 10);
 
-            saveChooser.addButton("OK", 100, 75, 100, 25, () -> saveChooser.hide());
+            saveChooser.addButton("OK", 100, 75, 100, 25, () -> saveChooser.hide(), 10);
         }
 
         saveChooser.show();

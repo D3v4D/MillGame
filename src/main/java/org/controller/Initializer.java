@@ -1,15 +1,17 @@
 package org.controller;
 
 import org.model.*;
+import org.util.MapModel;
 import org.view.*;
 
 import com.google.gson.Gson;
+import org.view.base.ComponentGenerator;
 import org.view.swing.SwingComponentGenerator;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
 
 /**
  * The `InitAll` class initializes and manages the main components of the game,
@@ -17,7 +19,7 @@ import java.util.Arrays;
  */
 public class Initializer {
     MainMenuScreen mainMenuScreen;
-    public GameScreen gameScreen;
+    public InitGameScreen initGameScreen;
     public MapModel mapModel;
     Gson gson = new Gson();
 
@@ -29,6 +31,57 @@ public class Initializer {
 
     public ConcurrentStack<Integer> pressed = new ConcurrentStack<>();
     public boolean stillNotInstantiated = true;
+
+    /**
+     * Constructs the `InitAll` class, setting up initial configurations
+     * and managing the game's main threads (Swing elements, and the business logic are running on different threads).
+     */
+    public Initializer(ComponentGenerator componentGenerator, ExecutorService backendPool) {
+        maps = setFromFile("maps");
+        currentMap = maps[0];
+        saves = setFromFile("saves");
+        currentSave = saves[saves.length-1];
+
+        GameClient player1;
+        GameClient player2;
+
+        mainMenuScreen = new MainMenuScreen(this, new SwingComponentGenerator(), backendPool);
+
+        /*Thread player1Thread = new Thread(()-> {
+            player1 = new UserGameClient(new GameScreen(new SwingComponentGenerator(), mapModel));
+        });
+
+        Thread player2Thread = new Thread(() -> {
+            player2 = new UserGameClient(new GameScreen(new SwingComponentGenerator(), mapModel));
+        });
+
+        GameController gameController = new GameController(mapModel, player1, player2);
+*/
+
+
+        /*
+//        new Thread(() -> {
+//            while (true) {
+//                try {
+//                    initialized();
+//                    stillNotInstantiated = true;
+//                    new GameController(mapModel, pressed, initGameScreen);   //!!!!!!!!!
+//                } catch (Exception e) {
+//                    if (pressed.getLatest() == -69) {
+//                        mainMenuScreen.show();
+////                        System.out.println("GAME CLOSED");
+//                    } else if (pressed.getLatest() == -420) {
+////                        System.out.println("-420 recieved, starting a new game");
+//                        mainMenuScreen.startGame();
+//                    } else {
+////                        System.out.println("VMI NEM JAU");
+//                    }
+//                }
+//            }
+//        }).start();
+*/
+    }
+
 
     /**
      * Synchronizes initialization of game resources.
@@ -52,70 +105,16 @@ public class Initializer {
         return currentSave;
     }
 
-    /**
-     * Retrieves all available map files and sets the first map as the default.
-     */
-    private void setAllMaps() {
-        File f = new File("maps");
-        File[] subFiles = f.listFiles();
-        maps = new String[subFiles.length];
+    private String[] setFromFile(String folder){
+        File f = new File(folder);
+        File [] subFiles = f.listFiles();
+        String[] ret = new String[subFiles.length];
         for (int i = 0; i < subFiles.length; i++) {
-            maps[i] = (subFiles[i].getName().split("\\.")[0]);
+            ret[i] = (subFiles[i].getName().split("\\.")[0]);
         }
-        currentMap = maps[0];
+        return ret;
     }
 
-    /**
-     * Retrieves all available save files and orders them by date.
-     */
-    private void setAllsaves() {
-        File f = new File("saves");
-        File[] subFiles = f.listFiles();
-        saves = new String[subFiles.length];
-        for (int i = 0; i < subFiles.length; i++) {
-            saves[i] = (subFiles[i].getName().split("\\.")[0]);
-        }
-        Arrays.sort(saves);
-        for (int i = 0; i < saves.length / 2 ; i++) {
-            String temp = saves[i];
-            saves[i] = saves[saves.length - 1 - i];
-            saves[saves.length - 1 - i] = temp;
-        }
-        currentSave = saves[0];
-    }
-
-    /**
-     * Constructs the `InitAll` class, setting up initial configurations
-     * and managing the game's main threads (Swing elements, and the business logic are running on different threads).
-     */
-    public Initializer() {
-
-        setAllMaps();
-        setAllsaves();
-
-        new Thread(() -> {
-            while (true) {
-                try {
-                    initialized();
-                    stillNotInstantiated = true;
-                    new GameController(mapModel, pressed, gameScreen);   //!!!!!!!!!
-                } catch (Exception e) {
-                    if (pressed.getLatest() == -69) {
-                        mainMenuScreen.show();
-//                        System.out.println("GAME CLOSED");
-                    } else if (pressed.getLatest() == -420) {
-//                        System.out.println("-420 recieved, starting a new game");
-                        mainMenuScreen.startGame();
-                    } else {
-//                        System.out.println("VMI NEM JAU");
-                    }
-                }
-            }
-        }).start();
-
-        new Thread(() -> mainMenuScreen = new MainMenuScreen(this, new SwingComponentGenerator())).start();
-
-    }
 
     /**
      * Gets the currently selected map.
@@ -149,7 +148,7 @@ public class Initializer {
             FileWriter fw = new FileWriter(filename);
             gson.toJson(gs, fw);
             fw.close();
-            setAllsaves();
+            saves = setFromFile("saves");
         } catch (Exception e) {
         }
     }
