@@ -1,5 +1,6 @@
 package org.view;
 
+import java.awt.Color;
 import org.controller.*;
 import org.model.*;
 
@@ -15,12 +16,12 @@ import javax.swing.*;
 /**
  * Initializes the game screen with a graphical user interface for the board and menu.
  */
-public class InitGameScreen extends JFrame {
+public class GameScreen extends JFrame {
     private JButton[] fields;
     private JPanel mainBoard;
     private JPanel sideMenu;
     private BoardModel.Color[] colors;
-    private JLabel label = new JLabel("itt van");
+    private JLabel label = new JLabel();
     private JButton saveButton;
     private JButton exitButton;
     private JLayeredPane jLayeredPane = new JLayeredPane();
@@ -29,7 +30,7 @@ public class InitGameScreen extends JFrame {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g;
-            g2d.setPaint(new GradientPaint(0, 0, new Color(0, 106, 133), 250, 550, new Color(0, 0, 250)));
+            g2d.setPaint(new GradientPaint(0, 0, new java.awt.Color(0, 106, 133), 250, 550, new java.awt.Color(0, 0, 250)));
             g2d.fillRect(0, 0, 550, 450);
         }
     };
@@ -47,11 +48,11 @@ public class InitGameScreen extends JFrame {
      *
      * @param p        The stack of pressed buttons.
      * @param mapModel The model representing the game board.
-     * @param initAll  The object responsible for saving and managing the game.
+     * @param initializer  The object responsible for saving and managing the game.
      * @throws InterruptedException If the thread is interrupted during initialization.
      */
 
-    public InitGameScreen(ConcurrentStack<Integer> p, MapModel mapModel, InitAll initAll) throws InterruptedException {
+    public GameScreen(ConcurrentStack<Integer> p, MapModel mapModel, Initializer initializer) throws InterruptedException {
         ArrayList<IntTuple> locations = mapModel.locationList;
         piecesPlayer = piecesPlayer1 = piecesPlayer2 = mapModel.pieces;
         pressed = p;
@@ -71,10 +72,10 @@ public class InitGameScreen extends JFrame {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
-                g2d.setPaint(new GradientPaint(750, 750, new Color(205, 133, 63), 0, 0, new Color(196, 164, 132)));
+                g2d.setPaint(new GradientPaint(750, 750, new java.awt.Color(205, 133, 63), 0, 0, new java.awt.Color(196, 164, 132)));
                 g2d.fillRect(0, 0, 750, 750);
 
-                g2d.setColor(Color.darkGray);
+                g2d.setColor(java.awt.Color.darkGray);
                 g2d.setStroke(new BasicStroke(5));
 
                 for (Line line : mapModel.lineList) {
@@ -88,7 +89,7 @@ public class InitGameScreen extends JFrame {
         saveButton = new JButton("Save");
         saveButton.setBounds(75, 600, 150, 50);
         saveButton.addActionListener(e -> {
-            initAll.saveGame("saves/" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + ".json");
+            initializer.saveGame("saves/" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + ".json");
         });
 
         exitButton = new JButton("Exit To Menu");
@@ -174,7 +175,7 @@ public class InitGameScreen extends JFrame {
         try {
             winBox.setBounds(250, 150, 550, 350);
             winBox.setLayout(null);
-            JLabel winText = new JLabel(!player1 ? "LIGHT WON" : "DARK WON");
+            JLabel winText = new JLabel(player1 ? "LIGHT WON" : "DARK WON");
             winText.setHorizontalAlignment(SwingConstants.CENTER);
             winText.setVerticalAlignment(SwingConstants.CENTER);
             winBox.add(winText);

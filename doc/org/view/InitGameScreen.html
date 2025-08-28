@@ -91,7 +91,7 @@ loadScripts(document, 'script');</script>
 <div class="inheritance"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.desktop/java/awt/Window.html" title="class or interface in java.awt" class="external-link">java.awt.Window</a>
 <div class="inheritance"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.desktop/java/awt/Frame.html" title="class or interface in java.awt" class="external-link">java.awt.Frame</a>
 <div class="inheritance"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.desktop/javax/swing/JFrame.html" title="class or interface in javax.swing" class="external-link">javax.swing.JFrame</a>
-<div class="inheritance">org.view.InitGameScreen</div>
+<div class="inheritance">org.view.GameScreen</div>
 </div>
 </div>
 </div>
@@ -111,7 +111,7 @@ loadScripts(document, 'script');</script>
 <dt>See Also:</dt>
 <dd>
 <ul class="tag-list">
-<li><a href="../../serialized-form.html#org.view.InitGameScreen">Serialized Form</a></li>
+<li><a href="../../serialized-form.html#org.view.GameScreen">Serialized Form</a></li>
 </ul>
 </dd>
 </dl>
@@ -186,7 +186,7 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-last">Description</div>
 <div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(org.model.ConcurrentStack,org.model.MapModel,org.controller.InitAll)" class="member-name-link">InitGameScreen</a><wbr>(<a href="../model/ConcurrentStack.html" title="class in org.model">ConcurrentStack</a>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Integer.html" title="class or interface in java.lang" class="external-link">Integer</a>&gt;&nbsp;p,
  <a href="../model/MapModel.html" title="class in org.model">MapModel</a>&nbsp;mapModel,
- <a href="../controller/InitAll.html" title="class in org.controller">InitAll</a>&nbsp;initAll)</code></div>
+ <a href="../controller/InitAll.html" title="class in org.controller">InitAll</a>&nbsp;initializer)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Initializes the game screen with the given game data.</div>
 </div>
@@ -279,14 +279,14 @@ loadScripts(document, 'script');</script>
 <h3>InitGameScreen</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">InitGameScreen</span><wbr><span class="parameters">(<a href="../model/ConcurrentStack.html" title="class in org.model">ConcurrentStack</a>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Integer.html" title="class or interface in java.lang" class="external-link">Integer</a>&gt;&nbsp;p,
  <a href="../model/MapModel.html" title="class in org.model">MapModel</a>&nbsp;mapModel,
- <a href="../controller/InitAll.html" title="class in org.controller">InitAll</a>&nbsp;initAll)</span>
+ <a href="../controller/InitAll.html" title="class in org.controller">InitAll</a>&nbsp;initializer)</span>
                throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/InterruptedException.html" title="class or interface in java.lang" class="external-link">InterruptedException</a></span></div>
 <div class="block">Initializes the game screen with the given game data.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>p</code> - The stack of pressed buttons.</dd>
 <dd><code>mapModel</code> - The model representing the game board.</dd>
-<dd><code>initAll</code> - The object responsible for saving and managing the game.</dd>
+<dd><code>initializer</code> - The object responsible for saving and managing the game.</dd>
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/InterruptedException.html" title="class or interface in java.lang" class="external-link">InterruptedException</a></code> - If the thread is interrupted during initialization.</dd>
 </dl>

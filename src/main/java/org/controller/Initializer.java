@@ -4,6 +4,7 @@ import org.model.*;
 import org.view.*;
 
 import com.google.gson.Gson;
+import org.view.swing.SwingComponentGenerator;
 
 import java.io.File;
 import java.io.FileReader;
@@ -14,9 +15,9 @@ import java.util.Arrays;
  * The `InitAll` class initializes and manages the main components of the game,
  * including game screens, saved games, and map selection.
  */
-public class InitAll {
-    MainMenuScreen ig;
-    public InitGameScreen gameScreen;
+public class Initializer {
+    MainMenuScreen mainMenuScreen;
+    public GameScreen gameScreen;
     public MapModel mapModel;
     Gson gson = new Gson();
 
@@ -87,7 +88,7 @@ public class InitAll {
      * Constructs the `InitAll` class, setting up initial configurations
      * and managing the game's main threads (Swing elements, and the business logic are running on different threads).
      */
-    public InitAll() {
+    public Initializer() {
 
         setAllMaps();
         setAllsaves();
@@ -100,11 +101,11 @@ public class InitAll {
                     new GameController(mapModel, pressed, gameScreen);   //!!!!!!!!!
                 } catch (Exception e) {
                     if (pressed.getLatest() == -69) {
-                        ig.setVisible(true);
+                        mainMenuScreen.show();
 //                        System.out.println("GAME CLOSED");
                     } else if (pressed.getLatest() == -420) {
 //                        System.out.println("-420 recieved, starting a new game");
-                        ig.startGame();
+                        mainMenuScreen.startGame();
                     } else {
 //                        System.out.println("VMI NEM JAU");
                     }
@@ -112,7 +113,7 @@ public class InitAll {
             }
         }).start();
 
-        new Thread(() -> ig = new MainMenuScreen(this)).start();
+        new Thread(() -> mainMenuScreen = new MainMenuScreen(this, new SwingComponentGenerator())).start();
 
     }
 

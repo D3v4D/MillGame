@@ -4,7 +4,7 @@ import org.junit.jupiter.api.*;
 import org.model.BoardModel;
 import org.model.ConcurrentStack;
 import org.model.MapModel;
-import org.view.InitGameScreen;
+import org.view.GameScreen;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -17,7 +17,7 @@ class GameControllerTest {
     MapModel mM;
     ConcurrentStack<Integer> pressed;
     @Mock
-    InitGameScreen mockScreen = mock(InitGameScreen.class);
+    GameScreen mockScreen = mock(GameScreen.class);
     GameController gameController;
 
     @BeforeEach
@@ -81,7 +81,7 @@ class GameControllerTest {
             }};
             pressed = new ConcurrentStack<>();
 
-            mockScreen = mock(InitGameScreen.class);
+            mockScreen = mock(GameScreen.class);
             doNothing().when(mockScreen).phaseUp();
             doNothing().when(mockScreen).winScreen(true);
             doNothing().when(mockScreen).winScreen(false);
@@ -93,7 +93,7 @@ class GameControllerTest {
     @Test
     void testCase1() {
         try {
-            mockScreen = mock(InitGameScreen.class);
+            mockScreen = mock(GameScreen.class);
             doNothing().when(mockScreen).phaseUp();
 
             pressed.list = new ArrayList<>() {{

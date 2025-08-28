@@ -3,33 +3,33 @@ package org.controller;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class InitAllTest {
-    InitAll initAll;
+class InitializerTest {
+    Initializer initializer;
     @BeforeEach
     void setUp() {
-        initAll = new InitAll();
+        initializer = new Initializer();
     }
 
     @Test
     void testCase1(){
-        initAll.loadMap();
+        initializer.loadMap();
     }
 
     @Test
     void testCase2(){
-        initAll.loadGame();
+        initializer.loadGame();
     }
 
     @Test
     void testCase3(){
-        initAll.saveGame("/dev/null");
+        initializer.saveGame("/dev/null");
     }
     @Test
     void testCase4(){
-        initAll.getCurrentSave();
+        initializer.getCurrentSave();
     }
     @Test
     void testCase5(){
-        initAll.getCurrentMap();
+        initializer.getCurrentMap();
     }
 }

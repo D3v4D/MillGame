@@ -5,7 +5,7 @@ import org.model.BoardModel;
 import org.model.ConcurrentStack;
 import org.model.MapModel;
 import org.model.TopList;
-import org.view.InitGameScreen;
+import org.view.GameScreen;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -18,7 +18,7 @@ import java.util.ArrayList;
 public class GameController {
     private boolean player1 = true; //1 - light; 2 - dark ; true - 1; false -2
     public BoardModel boardModel;
-    private InitGameScreen gameScreen;
+    private GameScreen gameScreen;
     private ConcurrentStack<Integer> pressed;
     private int player1Pieces;
     private int player2Pieces;
@@ -33,8 +33,7 @@ public class GameController {
      * @param gS       the screen responsible for rendering the game UI
      * @throws InterruptedException if interrupted while waiting for user input
      */
-    public GameController(MapModel mapModel, ConcurrentStack<Integer> p, InitGameScreen gS) throws InterruptedException {
-        /*System.out.println("GAMECONTROLLER");*/
+    public GameController(MapModel mapModel, ConcurrentStack<Integer> p, GameScreen gS) throws InterruptedException {
         boardModel = new BoardModel(mapModel.fields, mapModel.groups);
         pressed = p;
         gameScreen = gS;
@@ -58,7 +57,6 @@ public class GameController {
         gameScreen.changePlayer();
     }
 
-
     /**
      * Handles the start phase where players alternately place their pieces on the board.
      *
@@ -74,8 +72,8 @@ public class GameController {
             BoardModel.Color color;
             boolean valid = false;
             while (!valid) {
-                Integer p = pressed.pop();
-                if (boardModel.getFields(BoardModel.Color.BLANK).contains(p)) {
+                Integer p = pressed.pop(); //takes a position from the stack
+                if (boardModel.getFields(BoardModel.Color.BLANK).contains(p)) { //checks if the location is empty
                     color = player1 ? BoardModel.Color.LIGHT : BoardModel.Color.DARK;
                     putPiece(p, color);
                     valid = true;
