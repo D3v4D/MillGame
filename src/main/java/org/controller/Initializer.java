@@ -2,6 +2,7 @@ package org.controller;
 
 import org.model.*;
 import org.util.MapModel;
+import org.util.PlayerColor;
 import org.view.*;
 
 import com.google.gson.Gson;
@@ -12,6 +13,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * The `InitAll` class initializes and manages the main components of the game,
@@ -19,7 +21,7 @@ import java.util.concurrent.ExecutorService;
  */
 public class Initializer {
     MainMenuScreen mainMenuScreen;
-    public InitGameScreen initGameScreen;
+    GameController gameController;
     public MapModel mapModel;
     Gson gson = new Gson();
 
@@ -36,7 +38,7 @@ public class Initializer {
      * Constructs the `InitAll` class, setting up initial configurations
      * and managing the game's main threads (Swing elements, and the business logic are running on different threads).
      */
-    public Initializer(ComponentGenerator componentGenerator, ExecutorService backendPool) {
+    public Initializer(ComponentGenerator componentGenerator) {
         maps = setFromFile("maps");
         currentMap = maps[0];
         saves = setFromFile("saves");
@@ -45,55 +47,19 @@ public class Initializer {
         GameClient player1;
         GameClient player2;
 
-        mainMenuScreen = new MainMenuScreen(this, new SwingComponentGenerator(), backendPool);
-
-        /*Thread player1Thread = new Thread(()-> {
-            player1 = new UserGameClient(new GameScreen(new SwingComponentGenerator(), mapModel));
-        });
-
-        Thread player2Thread = new Thread(() -> {
-            player2 = new UserGameClient(new GameScreen(new SwingComponentGenerator(), mapModel));
-        });
-
-        GameController gameController = new GameController(mapModel, player1, player2);
-*/
+        mainMenuScreen = new MainMenuScreen(this, componentGenerator);
 
 
-        /*
-//        new Thread(() -> {
-//            while (true) {
-//                try {
-//                    initialized();
-//                    stillNotInstantiated = true;
-//                    new GameController(mapModel, pressed, initGameScreen);   //!!!!!!!!!
-//                } catch (Exception e) {
-//                    if (pressed.getLatest() == -69) {
-//                        mainMenuScreen.show();
-////                        System.out.println("GAME CLOSED");
-//                    } else if (pressed.getLatest() == -420) {
-////                        System.out.println("-420 recieved, starting a new game");
-//                        mainMenuScreen.startGame();
-//                    } else {
-////                        System.out.println("VMI NEM JAU");
-//                    }
-//                }
-//            }
-//        }).start();
-*/
+
     }
 
 
-    /**
-     * Synchronizes initialization of game resources.
-     * does not initialize gameController, until gameScreen is initialized
-     */
-    public synchronized void initialized() {
-        try {
-            while (stillNotInstantiated) wait();
-            notifyAll();
-        } catch (Exception e) {
-            System.out.println("INSTATIATION EXCEPTION");
-        }
+    public void startGame() {
+        mapModel = loadMap();
+        gameController = new GameController(mapModel,
+                new UserGameClient(new SwingComponentGenerator(Executors.newFixedThreadPool(2)), mapModel, PlayerColor.LIGHT),
+                new UserGameClient(new SwingComponentGenerator(Executors.newFixedThreadPool(2)), mapModel, PlayerColor.DARK)
+        );
     }
 
     /**
@@ -105,7 +71,7 @@ public class Initializer {
         return currentSave;
     }
 
-    private String[] setFromFile(String folder){
+    public static String[] setFromFile(String folder){
         File f = new File(folder);
         File [] subFiles = f.listFiles();
         String[] ret = new String[subFiles.length];
@@ -129,14 +95,26 @@ public class Initializer {
     /**
      * Loads the currently chosen map
      */
-    public void loadMap() {
-        try (FileReader fr = new FileReader("maps/".concat(currentMap).concat(".json"))) {
-            mapModel = gson.fromJson(fr, MapModel.class);
+    public static MapModel loadMap(String map) {
+        Gson gson1 = new Gson();
+        try (FileReader fr = new FileReader("maps/".concat(map).concat(".json"))) {
+            return gson1.fromJson(fr, MapModel.class);
 //            System.out.println("<3");
-            pressed.clear();
         } catch (Exception e) {
 //            System.out.println("</3");
         }
+        return null;
+    }
+
+    public MapModel loadMap() {
+        Gson gson1 = new Gson();
+        try (FileReader fr = new FileReader("maps/".concat(currentMap).concat(".json"))) {
+            return gson1.fromJson(fr, MapModel.class);
+//            System.out.println("<3");
+        } catch (Exception e) {
+//            System.out.println("</3");
+        }
+        return null;
     }
 
     /**

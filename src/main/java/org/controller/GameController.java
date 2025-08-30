@@ -1,19 +1,24 @@
 package org.controller;
 
-import com.google.gson.Gson;
 import org.model.BoardModel;
 import org.util.MapModel;
-import org.model.TopList;
+import org.util.PlayerColor;
 
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.util.ArrayList;
+
+import static org.controller.GameClient.DOWNWARD_STATUS.*;
+
 
 /**
  * GameController manages the game logic, including piece placement,
  * movement, and tracking player turns.
  */
 public class GameController {
+
+    public void exitGame(PlayerColor playerColor) {
+        System.out.println("Player " + playerColor + " exited the game.");
+        System.exit(0);
+    }
 
     //in the start stage, any (one) empty space works fine, as a player can place on any tile basically
     //in the game stage, we need to check the space pair the player picked, as it easily can mark a invalid, in which case, we give the control back to the same player
@@ -25,20 +30,17 @@ public class GameController {
     private GameClient player1;
     private GameClient player2;
 
-
     public BoardModel boardModel;
 
     private int player1Pieces;
     private int player2Pieces;
-    private boolean invalid = true;
+
     private boolean notEnclosed = true;
 
     /**
      * Constructs a GameController and starts the game phases.
      *
      * @param mapModel the model representing the game map
-     * @param p        the stack used to track user inputs
-     * @param gS       the screen responsible for rendering the game UI
      */
     public GameController(MapModel mapModel, GameClient player1, GameClient player2) {
         boardModel = new BoardModel(mapModel.fields, mapModel.groups);
@@ -47,17 +49,17 @@ public class GameController {
         player1.setGameController(this);
         player2.setGameController(this);
 
+        player1.sendDown(NONE, null);
+        player2.sendDown(MOVE, null);
+    }
+
+    public void receiveField(int field) {
+        System.out.println("Received field: " + field);
 
     }
 
-
-    /**
-     * Switches the active player.
-     */
-    private void switchPlayer() {
-
-    }
 }
+
 
     /**
      * Handles the start phase where players alternately place their pieces on the board.

@@ -1,4 +1,7 @@
 package org.model;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,13 +12,25 @@ import java.util.Map;
  * It stores information about the board layout, the pieces' positions, and the groups of pieces that form mills.
  */
 public class BoardModel {
-        private HashMap<Integer, ArrayList<Integer>> field = new HashMap<>(); //szomszédossági listás gráf
-        private Piece[] pieces; //melyik helyen milyen bábu van
-        private int[][] groups;
-        private int numberOfGroups;
+    //The board is represented as a graph, where each field is a node and edges connect neighboring fields.
+    private final HashMap<Integer, ArrayList<Integer>> boardMap;
 
-        /**
-         * Constructs a new {@code BoardModel} instance.
+    //Array index represents the field number
+    //pieces[0] is not used
+    private final Piece[] pieces;
+
+    //This is a 2D array where each row represents a group of three pieces that can form a mill.
+    //groups[0] is not used
+    //groups[i][0]: whether the whole group is in a mill
+    //groups[i][1]-[3]: the 3 fields that make up the group
+    //1-based indexing for easier understanding
+    private final int[][] groups;
+
+    private static final int FALSE = -1;
+    private static final int TRUE = 1;
+
+    /**
+     * Constructs a new {@code BoardModel} instance.
      *
      * @param f A map representing the neighboring fields for each field on the board.
      * @param g A list of groups representing the groups of three pieces that can form a mill.
@@ -27,16 +42,13 @@ public class BoardModel {
         }
         groups = new int[g.size() + 1][4];
         for (int i = 0; i < g.size(); i++) {
-            groups[i + 1][0] = 0;
-            groups[i + 1][1] = g.get(i)[0];
-            groups[i + 1][2] = g.get(i)[1];
-            groups[i + 1][3] = g.get(i)[2];
+            int[] group = g.get(i);
+            groups[i + 1][0] = FALSE;
+            groups[i + 1][1] = group[0];
+            groups[i + 1][2] = group[1];
+            groups[i + 1][3] = group[2];
         }
-        //csoport: ha mindegyik egyszínű, akkor malomban vannak
-        //[1]-[2]-[3]: a a csoport 3 eleme
-        //[0]: az egész csoport malomban van
-        field = (HashMap<Integer, ArrayList<Integer>>) f;
-        numberOfGroups = g.size();
+        boardMap = (HashMap<Integer, ArrayList<Integer>>) f;
     }
 
     /**
@@ -45,8 +57,8 @@ public class BoardModel {
      * @param i The field index.
      * @return A list of neighboring fields.
      */
-    public ArrayList<Integer> getNeighbouring(Integer i) {
-        return field.get(i);
+    public List<Integer> getNeighbouring(Integer i) {
+        return boardMap.get(i);
     }
 
     /**
@@ -55,7 +67,7 @@ public class BoardModel {
      * @param list A list of field indices.
      * @return A list of neighboring fields for all the given fields.
      */
-    public ArrayList<Integer> getNeighbouring(List<Integer> list) {
+    public List<Integer> getNeighbouring(List<Integer> list) {
         ArrayList<Integer> ret = new ArrayList<>();
         list.forEach(i -> ret.addAll(getNeighbouring(i)));
         return ret;
@@ -70,11 +82,11 @@ public class BoardModel {
      * @throws RuntimeException If the move is not valid (note: this is not possible if the game is played without any modifications)
      */
     public boolean movePiece(Integer from, Integer to) throws RuntimeException {
-        if (pieces[to].color == Color.DARK || pieces[to].color == Color.LIGHT) {
+        if (pieces[to].color != Color.EMPTY || pieces[from].color == Color.EMPTY) {
             throw new RuntimeException("INVALID MOVE");
         }
         pieces[to].color = pieces[from].color;
-        pieces[from].color = Color.BLANK;
+        pieces[from].color = Color.EMPTY;
         checkForUnmill(from);
         return checkForMill(to);
     }
@@ -88,15 +100,10 @@ public class BoardModel {
     public void checkForUnmill(int location) {
         //Since every time we move, the moved piece's position will be BLANK, meaning every mill in which it is involved will disappear
         //but its neighbors can still be part of a mill, so we need to pay close attention to those.
-        if (location == 1) {
-            int kutya = 1;
-        }
-        for (int i = 1; i <= numberOfGroups; i++) {
+        for (int i = 1; i < groups.length; i++) {
             //check for "unmilling"
-            if (location == groups[i][1] || //in one of the groups
-                    location == groups[i][2] || location == groups[i][3]) {
-                pieces[groups[i][1]].inMill = pieces[groups[i][2]].inMill = pieces[groups[i][3]].inMill = false;
-                groups[i][0] = 0;
+            if (groupContains(groups[i], location)) {
+                setMillForGroup(i, false);
                 //We need to check for "falsely unmilled mills" tho
                 if (location == groups[i][1]) {
                     checkFalseUnmill(i, 2, 3);
@@ -109,6 +116,13 @@ public class BoardModel {
         }
     }
 
+    private void setMillForGroup(int i, boolean mill) {
+        pieces[groups[i][1]].inMill = pieces[groups[i][2]].inMill = pieces[groups[i][3]].inMill = mill;
+        groups[i][0] = mill? TRUE: FALSE;
+    }
+
+
+
     /**
      * Helper method to check and restore mills that may have been falsely "unmilled."
      *
@@ -117,14 +131,28 @@ public class BoardModel {
      * @param b Another position in the group.
      */
     private void checkFalseUnmill(int i, int a, int b) {
-        for (int j = 1; j <= numberOfGroups; j++) {
-            if ((groups[i][a] == groups[j][1] || groups[i][a] == groups[j][2] || groups[i][a] == groups[j][3]) && groups[j][0] == 1) {
+        for (int j = 1; j < groups.length; j++) {
+            if (groupContains(groups[j], groups[i][a]) && groups[j][0] == TRUE) {
                 pieces[groups[i][a]].inMill = true;
             }
-            if ((groups[i][b] == groups[j][1] || groups[i][b] == groups[j][2] || groups[i][b] == groups[j][3]) && groups[j][0] == 1) {
+            if (groupContains(groups[j], groups[i][b]) && groups[j][0] == TRUE) {
                 pieces[groups[i][b]].inMill = true;
             }
         }
+    }
+
+    /**
+     * Helper method to check if a group contains a specific value.
+     * @param arr The group to check.
+     * @param val The value to look for.
+     * @return {@code true} if the group contains the value, {@code false} otherwise.
+     */
+    private boolean groupContains(int[] arr, int val) {
+        return arr[1] == val || arr[2] == val || arr[3] == val;
+    }
+
+    private boolean groupSameColor(int[] arr) {
+        return pieces[arr[1]].color == pieces[arr[2]].color && pieces[arr[2]].color == pieces[arr[3]].color;
     }
 
     /**
@@ -135,12 +163,9 @@ public class BoardModel {
      */
     public boolean checkForMill(int location) {
         boolean ret = false;
-        for (int i = 1; i <= numberOfGroups; i++) {
-            if ((location == groups[i][1] || location == groups[i][2] || location == groups[i][3]) &&//in one of the groups
-                    (pieces[groups[i][1]].color == pieces[groups[i][2]].color && //all the pieces are of the same color
-                            pieces[groups[i][2]].color == pieces[groups[i][3]].color)) {
-                pieces[groups[i][1]].inMill = pieces[groups[i][2]].inMill = pieces[groups[i][3]].inMill = true;
-                groups[i][0] = 1;
+        for (int i = 1; i < groups.length; i++) {
+            if (groupContains(groups[i], location) && (groupSameColor(groups[i]))) {
+                setMillForGroup(i, true);
                 ret = true;
             }
         }
@@ -151,13 +176,14 @@ public class BoardModel {
      * Places a piece on the specified field.
      *
      * @param where The index of the field where the piece is to be placed.
-     * @param what  The color of the piece to be placed.
+     * @param color  The color of the piece to be placed.
+     * @throws RuntimeException If the field is already occupied.
      */
-    public void putPiece(int where, Color what) {
-        pieces[where].color = what;
-        if (what == Color.BLANK) {
-            checkForUnmill(where);
+    public void putPiece(int where, Color color) throws RuntimeException {
+        if (pieces[where].color != Color.EMPTY) {
+            throw new RuntimeException("INVALID PUT");
         }
+        pieces[where].color = color;
     }
 
     /**
@@ -167,7 +193,7 @@ public class BoardModel {
      * @param byMill  {@code true} to filter for pieces that are in a mill, {@code false} for those not in a mill.
      * @return A list of field indices with the specified color and mill status.
      */
-    public ArrayList<Integer> getFields(Color byColor, boolean byMill) {
+    public List<Integer> getFields(Color byColor, boolean byMill) {
         ArrayList<Integer> ret = new ArrayList<>();
         if (byMill) {
             for (int i = 1; i < pieces.length; i++) {
@@ -191,7 +217,7 @@ public class BoardModel {
      * @param byColor The color of the pieces to check.
      * @return A list of field indices with the specified color.
      */
-    public ArrayList<Integer> getFields(Color byColor) {
+    public List<Integer> getFields(Color byColor) {
         ArrayList<Integer> ret = new ArrayList<>();
         for (int i = 1; i < pieces.length; i++) {
             if (pieces[i].color == byColor) {
@@ -208,7 +234,7 @@ public class BoardModel {
      * @param byColor      The color to filter by.
      * @return A list of field indices that contain pieces of the specified color.
      */
-    public ArrayList<Integer> filterFieldsByColor(List<Integer> fieldsToSort, Color byColor) {
+    public List<Integer> filterFieldsByColor(@NotNull List<Integer> fieldsToSort, Color byColor) {
         ArrayList<Integer> ret = new ArrayList<>();
         for (Integer i : fieldsToSort) {
             if (pieces[i].color == byColor) {
@@ -222,7 +248,7 @@ public class BoardModel {
      * Enum representing the color states of a game piece.
      */
 
-    public enum Color {LIGHT, DARK, BLANK, CHOOSABLE, MOVABLE_LIGHT, MOVABLE_DARK, CHOSEN_LIGHT, CHOSEN_DARK, PICK_LIGHT, PICK_DARK}
+    public enum Color {LIGHT, DARK, EMPTY}
 
     /**
      * The {@code Piece} class represents a single piece on the board.
@@ -237,7 +263,7 @@ public class BoardModel {
          * Constructs a new {@code Piece} with the default color of {@code BLANK}.
          */
         public Piece() {
-            color = Color.BLANK;
+            color = Color.EMPTY;
         }
     }
 }

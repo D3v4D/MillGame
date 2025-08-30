@@ -130,7 +130,7 @@ public class InitGameScreen extends JFrame {
         //mezők
 
         for (int i = 0; i < locations.size(); i++) {
-            colors[i + 1] = BoardModel.Color.BLANK;
+            colors[i + 1] = BoardModel.Color.EMPTY;
             int index = i;
             fields[i + 1] = new JButton() {
                 @Override
@@ -275,66 +275,7 @@ public class InitGameScreen extends JFrame {
      * @param color The color to be used for the button background.
      */
     private void drawButton(Graphics2D g2, BoardModel.Color color) {
-        switch (color) {
-            case LIGHT -> {
-                g2.setColor(new Color(255, 222, 173));
-                g2.fillOval(0, 0, 50, 50);
-            }
-            case DARK -> {
-                g2.setColor(new Color(100, 0, 0));
-                g2.fillOval(0, 0, 50, 50);
-            }
-            case MOVABLE_DARK -> {
-                g2.setColor(Color.green);
-                g2.fillOval(0, 0, 50, 50);
-                g2.setColor(new Color(100, 0, 0));
-                g2.fillOval(5, 5, 40, 40);
-            }
-            case MOVABLE_LIGHT -> {
-                g2.setColor(Color.green);
-                g2.fillOval(0, 0, 50, 50);
-                g2.setColor(new Color(255, 222, 173));
-                g2.fillOval(5, 5, 40, 40);
-            }
-            case CHOOSABLE -> {
-                g2.setColor(Color.green);
-                g2.fillOval(10, 10, 30, 30);
-                g2.setColor(Color.DARK_GRAY);
-                g2.fillOval(15, 15, 20, 20);
-            }
-            case CHOSEN_DARK -> {
-                g2.setColor(new Color(0, 150, 0));
-                g2.fillOval(0, 0, 50, 50);
-                g2.setColor(new Color(100, 0, 0));
-                g2.fillOval(5, 5, 40, 40);
-            }
-            case CHOSEN_LIGHT -> {
-                g2.setColor(new Color(0, 150, 0));
-                g2.fillOval(0, 0, 50, 50);
-                g2.setColor(new Color(255, 222, 173));
-                g2.fillOval(5, 5, 40, 40);
-            }
-            case PICK_LIGHT -> {
-                g2.setColor(new Color(255, 222, 173));
-                g2.fillOval(5, 5, 40, 40);
-                g2.setColor(Color.red);
-                g2.setStroke(new BasicStroke(5));
-                g2.drawLine(5, 5, 45, 45);
-                g2.drawLine(5, 45, 45, 5);
-            }
-            case PICK_DARK -> {
-                g2.setColor(new Color(100, 0, 0));
-                g2.fillOval(5, 5, 40, 40);
-                g2.setColor(Color.red);
-                g2.setStroke(new BasicStroke(5));
-                g2.drawLine(5, 5, 45, 45);
-                g2.drawLine(5, 45, 45, 5);
-            }
-            default -> {
-                g2.setColor(Color.DARK_GRAY);
-                g2.fillOval(15, 15, 20, 20);
-            }
-        }
+
     }
 
     /**

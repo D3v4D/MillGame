@@ -2,6 +2,7 @@ package org.view;
 
 
 import org.controller.*;
+import org.util.MapModel;
 import org.view.base.ComponentGenerator;
 
 import java.util.concurrent.ExecutorCompletionService;
@@ -13,8 +14,6 @@ import java.util.concurrent.ExecutorService;
  * It provides options to start a game, load a save, view the toplist, choose a map, or exit the game.
  */
 public class MainMenuScreen {
-
-    ExecutorService backendPool;
 
     /**
      * Reference to the main controller for initializing various game components.
@@ -31,7 +30,7 @@ public class MainMenuScreen {
      *
      * @param init The main controller that manages the game initialization logic.
      */
-    public MainMenuScreen(Initializer init, ComponentGenerator componentGenerator, ExecutorService backendPool) {
+    public MainMenuScreen(Initializer init, ComponentGenerator componentGenerator) {
         int x = 800, y = 450;
 
         this.initializer = init;
@@ -43,18 +42,18 @@ public class MainMenuScreen {
         componentGenerator.paintBackground(0, 0, x, y, 0, 0, 0, y, new ComponentGenerator.Color(230, 230, 230), new ComponentGenerator.Color(50, 50, 50), 0);
 
         int startButtonId = componentGenerator.addButton("Start Game On ".concat(initializer.getCurrentMap()), 200, 50, 400, 50,
-            () -> backendPool.execute(() ->{
-                componentGenerator.hide();
-                initializer.loadMap();
-                startGame();
-        }), 10);  //we save these two buttons' id, so we can modify their text in the future
+        () -> {
+            componentGenerator.hide();
+            initializer.loadMap();
+            startGame();
+        }, 10);  //we save these two buttons' id, so we can modify their text in the future
 
         int loadButtonId = componentGenerator.addButton("Load Game (".concat(initializer.getCurrentSave().concat(")")), 200, 125, 400, 50,
-            () -> backendPool.execute(()-> {
-                componentGenerator.hide();
-                initializer.loadGame();
-                startGame();
-        }), 10);
+        () -> {
+            componentGenerator.hide();
+            initializer.loadGame();
+            startGame();
+        }, 10);
 
         componentGenerator.addButton("Exit game", 200, 275, 400, 50, () -> {
             System.exit(0);
@@ -100,16 +99,7 @@ public class MainMenuScreen {
      * Starts a new game.
      */
     public void startGame() {
-        try {
-            hide();
-
-            initializer.initGameScreen = new InitGameScreen(initializer.pressed, initializer.mapModel, initializer);
-            initializer.stillNotInstantiated = false;
-            initializer.initialized();
-
-        } catch (InterruptedException a) {
-//            System.out.println("GATYA");
-        }
+        initializer.startGame();
     }
 
     /**
