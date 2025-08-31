@@ -5,16 +5,13 @@ import org.jetbrains.annotations.NotNull;
 import org.util.IntTuple;
 import org.util.Line;
 import org.util.MapModel;
-import org.view.base.ComponentGenerator;
+import org.view.ComponentGenerator;
 
 import javax.swing.*;
 import java.awt.*;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 import static java.awt.Font.getFont;
@@ -60,100 +57,123 @@ public class SwingComponentGenerator implements ComponentGenerator {
         });
     }
 
+    @Override
+    public void updateFieldGraphic(int field, FieldType type) {
+        types.set(field, type);
+        fields.get(field).repaint();
+    }
+
+    /** Draws a button representing a game field based on its type.
+     *
+     * @param g    The Graphics object used for drawing.
+     * @param type The type of the field, determining its appearance.
+     */
     private void drawButton(Graphics g, @NotNull FieldType type) {
         Graphics2D g2 = (Graphics2D) g;
         switch (type) {
             case LIGHT -> {
-                g2.setColor(lightBrown);
-                g2.fillOval(0, 0, 50, 50);
+                drawPiece(g2, lightBrown, 40);
             }
             case DARK -> {
-                g2.setColor(darkBrown);
-                g2.fillOval(0, 0, 50, 50);
+                drawPiece(g2, darkBrown, 40);
             }
             case MOVABLE_DARK -> {
-                g2.setColor(java.awt.Color.green);
-                g2.fillOval(0, 0, 50, 50);
-                g2.setColor(darkBrown);
-                g2.fillOval(5, 5, 40, 40);
+                drawHighlightedPiece(g2, java.awt.Color.green, darkBrown, 50);
             }
             case MOVABLE_LIGHT -> {
-                g2.setColor(java.awt.Color.green);
-                g2.fillOval(0, 0, 50, 50);
-                g2.setColor(lightBrown);
-                g2.fillOval(5, 5, 40, 40);
+                drawHighlightedPiece(g2, java.awt.Color.green, lightBrown, 50);
             }
             case MOVABLE_TO -> {
-                g2.setColor(java.awt.Color.green);
-                g2.fillOval(10, 10, 30, 30);
-                g2.setColor(java.awt.Color.DARK_GRAY);
-                g2.fillOval(15, 15, 20, 20);
+                drawHighlightedPiece(g2, java.awt.Color.green, java.awt.Color.DARK_GRAY, 30);
             }
             case CHOSEN_DARK -> {
-                g2.setColor(lightGreen);
-                g2.fillOval(0, 0, 50, 50);
-                g2.setColor(darkBrown);
-                g2.fillOval(5, 5, 40, 40);
+                drawHighlightedPiece(g2, lightGreen, darkBrown, 50);
             }
             case CHOSEN_LIGHT -> {
-                g2.setColor(lightGreen);
-                g2.fillOval(0, 0, 50, 50);
-                g2.setColor(lightBrown);
-                g2.fillOval(5, 5, 40, 40);
+                drawHighlightedPiece(g2,lightGreen, lightBrown, 50);
             }
-            case PICK_LIGHT -> {
-                g2.setColor(lightBrown);
-                drawCrossedCircle(g2);
+            case REMOVABLE_LIGHT -> {
+                drawCrossedPiece(g2, lightBrown);
             }
-            case PICK_DARK -> {
-                g2.setColor(darkBrown);
-                drawCrossedCircle(g2);
+            case REMOVABLE_DARK -> {
+                drawCrossedPiece(g2, darkBrown);
             }
             case EMPTY -> {
-                g2.setColor(java.awt.Color.DARK_GRAY);
-                g2.fillOval(15, 15, 20, 20);
+                drawPiece(g2, java.awt.Color.DARK_GRAY, 20);
             }
         }
     }
 
-    private static void drawCrossedCircle(@NotNull Graphics2D g2) {
-        g2.fillOval(5, 5, 40, 40);
+    /** Draws a highlighted game piece with a specified highlight color and size.
+     *
+     * @param g2                The Graphics2D object used for drawing.
+     * @param highlightColor    The color used for the highlight effect.
+     * @param color             The main color of the piece.
+     * @param sizewithHighLight The size of the piece including the highlight.
+     */
+    private void drawHighlightedPiece(@NotNull Graphics2D g2, java.awt.Color highlightColor, java.awt.Color color, int sizewithHighLight) {
+        drawPiece(g2, highlightColor, sizewithHighLight);
+        drawPiece(g2, color, sizewithHighLight-10);
+    }
+
+    /** Draws a game piece with a red cross over it, indicating it is not usable.
+     *
+     * @param g2    The Graphics2D object used for drawing.
+     * @param color The main color of the piece.
+     */
+    private void drawCrossedPiece(@NotNull Graphics2D g2, java.awt.Color color) {
+        drawPiece(g2, color, 40);
         g2.setColor(java.awt.Color.red);
         g2.setStroke(new BasicStroke(5));
         g2.drawLine(5, 5, 45, 45);
         g2.drawLine(5, 45, 45, 5);
     }
 
+    /** Draws a circular game piece of a specified color and size.
+     *
+     * @param g2       The Graphics2D object used for drawing.
+     * @param color    The color of the piece.
+     * @param size     The diameter of the piece.
+     * @param fullSize The full size of the button area (used for centering).
+     */
+    private void drawPiece(@NotNull Graphics2D g2, java.awt.Color color, int size, int fullSize) {
+        g2.setColor(color);
+        g2.fillOval((fullSize - size) / 2, (fullSize - size) / 2, size, size);
+    }
+
+    /** Overloaded method to draw a game piece with a default full size of 50.
+     *
+     * @param g2    The Graphics2D object used for drawing.
+     * @param color The color of the piece.
+     * @param size  The diameter of the piece.
+     */
+    private void drawPiece(@NotNull Graphics2D g2, java.awt.Color color, int size) {
+        drawPiece(g2, color, size, 50);
+    }
+
     private ArrayList<ArrayList<JPanel>> stacks = new ArrayList<ArrayList<JPanel>>();
 
+    /** Modifies the appearance of a stack of game pieces.
+     * Updates the colors of the pieces in the stack based on the specified counts and colors.
+     *
+     * @param ID     The ID of the stack to modify.
+     * @param unit1  The number of pieces to color with color1 from the top.
+     * @param color1 The color for the first set of pieces.
+     * @param unit2  The number of pieces to color with color2 from the bottom.
+     * @param color2 The color for the second set of pieces.
+     */
     @Override
-    public void modifyStack(int ID, int unit1, Color color1, int unit2, Color color2, int unit3, Color color3) {
+    public void modifyStack(int ID, int unit1, @NotNull Color color1, int unit2, @NotNull Color color2) {
         ArrayList<JPanel> stack = stacks.get(ID);
-        int i = 0;
-        if (color1 != null) for (; i < unit1 && i < stack.size(); i++) {
-            stack.get(i).setBackground(new java.awt.Color(color1.r(), color1.g(), color1.b()));
-            stack.get(i).setVisible(true);
-        }
-        else {
-            for (; i < unit1 && i < stack.size(); i++) {
-                stack.get(i).setVisible(false);
-            }
-        }
-        if (color2 != null) for (; i < unit1 + unit2 && i < stack.size(); i++) {
-            stack.get(i).setBackground(new java.awt.Color(color2.r(), color2.g(), color2.b()));
-            stack.get(i).setVisible(true);
-        }
-        else {
-            for (; i < unit1 + unit2 && i < stack.size(); i++) {
-                stack.get(i).setVisible(false);
-            }
-        }
-        if (color3 != null) for (; i < unit1 + unit2 + unit3 && i < stack.size(); i++) {
-            stack.get(i).setBackground(new java.awt.Color(color3.r(), color3.g(), color3.b()));
-            stack.get(i).setVisible(true);
-        }
-        else {
-            for (; i < unit1 + unit2 + unit3 && i < stack.size(); i++) {
+        int totalUnits = stack.size();
+        for (int i = 0; i < totalUnits; i++) {
+            if (i < unit1) {
+                stack.get(i).setVisible(true);
+                stack.get(i).setBackground(new java.awt.Color(color1.r(), color1.g(), color1.b()));
+            } else if (i >= totalUnits - unit2) {
+                stack.get(i).setVisible(true);
+                stack.get(i).setBackground(new java.awt.Color(color2.r(), color2.g(), color2.b()));
+            } else {
                 stack.get(i).setVisible(false);
             }
         }
@@ -260,6 +280,13 @@ public class SwingComponentGenerator implements ComponentGenerator {
 
         temp.addActionListener(actionEvent -> callback.accept(tempN));
         return temp;
+    }
+
+    @Override
+    public void addUITestGif(){
+        JLabel gifLabel = new JLabel(new ImageIcon("2c14d0f1ef5cb1ed8413cb8c9e6a1c3e.gif"));
+        gifLabel.setBounds(750, 300, 300, 200);
+        layeredPane.add(gifLabel, Integer.valueOf(500));
     }
 
     @Override

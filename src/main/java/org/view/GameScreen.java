@@ -5,15 +5,22 @@ import org.controller.GameClient;
 import org.jetbrains.annotations.NotNull;
 import org.util.MapModel;
 import org.util.PlayerColor;
-import org.view.base.ComponentGenerator;
 
 public class GameScreen {
     private final ComponentGenerator componentGenerator;
-    private GameClient gameClient;
-    int lightStackID;
-    int darkStackID;
+    private final GameClient gameClient;
+    private int lightStackID;
+    private int darkStackID;
     private final PlayerColor myColor;
 
+    /**
+     * Constructs a GameScreen with the specified parameters.
+     *
+     * @param componentGenerator the component generator used to create UI components
+     * @param mapModel           the model representing the game map
+     * @param color              the player's color
+     * @param gameClient         the game client for handling game logic
+     */
     public GameScreen(@NotNull ComponentGenerator componentGenerator, MapModel mapModel, PlayerColor color, GameClient gameClient) {
         myColor = color;
         this.gameClient = gameClient;
@@ -21,7 +28,7 @@ public class GameScreen {
         componentGenerator.generateBase(1050, 780);
 
         //Label
-        int labelID = componentGenerator.addLabel("Hello World!", 750, 500, 300, 50, 32, ComponentGenerator.HorizontalAlignment.CENTER, ComponentGenerator.VerticalAlignment.MIDDLE, 10);
+        int labelID = componentGenerator.addLabel("Hello World!", 750, 500, 300, 50, 20, ComponentGenerator.HorizontalAlignment.CENTER, ComponentGenerator.VerticalAlignment.MIDDLE, 10);
 
         //Board
         componentGenerator.paintBoard(0, 0, 750, 750, 0, 0, 750, 750, new ComponentGenerator.Color(205, 133, 63), new ComponentGenerator.Color(196, 164, 132), mapModel, 0, (i) -> gameClient.sendUp(i));
@@ -51,9 +58,19 @@ public class GameScreen {
             //save game
         }, 20);*/
 
+        componentGenerator.addUITestGif();
+
         componentGenerator.show();
     }
 
+    /** Draws the stack of pieces for a player.
+     *
+     * @param x           The x-coordinate where the stack should be drawn.
+     * @param unit        The number of pieces in the stack.
+     * @param color       The color of the pieces in the stack.
+     * @param playerColor The color representing the player (LIGHT or DARK).
+     * @return The ID of the drawn stack component.
+     */
     int drawStack(int x, int unit, ComponentGenerator.Color color, PlayerColor playerColor) {
         return componentGenerator.drawStack(x, 30, 70, 20, 10, unit, color, 100, playerColor == myColor);
     }
@@ -62,15 +79,28 @@ public class GameScreen {
         componentGenerator.modifyLabelText(labelID, text);
     }
 
-    public void changeFieldGraphics(@NotNull java.util.List<Integer> fields, ComponentGenerator.FieldType fieldType) {
+    public void updateFieldType(@NotNull java.util.List<Integer> fields, ComponentGenerator.FieldType fieldType) {
         componentGenerator.updateFieldGraphic(fields, fieldType);
+    }
+
+    public void updateFieldType(int field, ComponentGenerator.FieldType fieldType) {
+        componentGenerator.updateFieldGraphic(field, fieldType);
     }
 
     public void hide() {
         componentGenerator.hide();
     }
 
-
+    public void updateStacks(PlayerColor color, int myUnitsLeftToPlace, int myUnitsRemoved, int opponentUnitsLeftToPlace, int opponentUnitsRemoved) {
+        if(color == PlayerColor.LIGHT){
+            componentGenerator.modifyStack(lightStackID, opponentUnitsRemoved, ComponentGenerator.Color.darkBrown, myUnitsLeftToPlace, ComponentGenerator.Color.lightBrown);
+            componentGenerator.modifyStack(darkStackID, myUnitsRemoved, ComponentGenerator.Color.lightBrown, opponentUnitsLeftToPlace, ComponentGenerator.Color.darkBrown);
+        }
+        else{
+            componentGenerator.modifyStack(darkStackID, opponentUnitsRemoved, ComponentGenerator.Color.lightBrown, myUnitsLeftToPlace, ComponentGenerator.Color.darkBrown);
+            componentGenerator.modifyStack(lightStackID, myUnitsRemoved, ComponentGenerator.Color.darkBrown, opponentUnitsLeftToPlace, ComponentGenerator.Color.lightBrown);
+        }
+    }
 
     public void show() {
         componentGenerator.show();
@@ -78,5 +108,9 @@ public class GameScreen {
 
     public void dispose() {
         componentGenerator.dispose();
+    }
+
+    public void endGame(){
+        dispose();
     }
 }

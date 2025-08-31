@@ -2,11 +2,6 @@ package org.view;
 
 
 import org.controller.*;
-import org.util.MapModel;
-import org.view.base.ComponentGenerator;
-
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
 
 
 /**
