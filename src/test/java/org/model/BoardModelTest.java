@@ -136,7 +136,6 @@ class BoardModelTest {
         assertThrows(RuntimeException.class, () -> boardModel.putPiece(1, BoardModel.Color.DARK));
         assertThrows(RuntimeException.class, () -> boardModel.putPiece(2, BoardModel.Color.LIGHT));
         assertThrows(RuntimeException.class, () -> boardModel.putPiece(9, BoardModel.Color.DARK));
-        assertThrows(RuntimeException.class, () -> boardModel.putPiece(9, BoardModel.Color.EMPTY));
         assertFalse(boardModel.putPiece(7, BoardModel.Color.DARK));
         assertTrue(boardModel.isFieldOfColor(7, BoardModel.Color.DARK));
         assertTrue(boardModel.putPiece(8, BoardModel.Color.DARK));
@@ -147,11 +146,9 @@ class BoardModelTest {
     void getFields() {
         assertEquals(boardModel.getFields(BoardModel.Color.LIGHT), listOf(1, 2, 3));
         assertEquals(boardModel.getFields(BoardModel.Color.DARK), listOf(9));
-        assertEquals(boardModel.getFields(BoardModel.Color.EMPTY), listOf(4,5,6,7,8 ));
-    }
-
-    @Test
-    void testGetFields() {
+        assertEquals(boardModel.getFields(BoardModel.Color.LIGHT, true), listOf(1, 2, 3));
+        assertEquals(boardModel.getFields(BoardModel.Color.LIGHT, false), new ArrayList<>());
+        assertEquals(boardModel.getFields(BoardModel.Color.DARK, false), listOf(9));
 
     }
 

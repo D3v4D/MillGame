@@ -14,40 +14,35 @@ import java.util.Random;
  */
 public class GameController {
     private final GameClient lightPlayer;
-    private int lightPlayerPieces;
     private final GameClient darkPlayer;
-    private int darkPlayerPieces;
-
     private final int defaultPieces;
-    private int placedPieces = 0;
-
     private final Initializer initializer;
     private final BoardModel boardModel;
 
+    /** Currently selected piece for movement; null if no piece is selected. */
+    Integer selectedPiece = null;
+    private int lightPlayerPieces;
+    private int darkPlayerPieces;
+    private int placedPieces = 0;
     //true if it's light player's turn, false if dark player's turn
     private boolean focusOnLight = true;
-
     //true if the game is in the mill phase, false otherwise
     private boolean millPhase = false;
-
     //true if the game is in the placing phase, false if in the main game phase
     private boolean placingPhase = true;
-
-    //the currently selected piece for moving, null if no piece is selected
-    Integer selectedPiece = null;
 
     /**
      * Constructs a GameController with the specified map model, players, and initializer.
      *
-     * @param mapModel   the map model representing the game board
-     * @param player1    the first game client (player)
-     * @param player2    the second game client (player)
+     * @param mapModel    the map model representing the game board
+     * @param player1     the first game client (player)
+     * @param player2     the second game client (player)
      * @param initializer the initializer to return to the menu after the game ends
      */
     public GameController(@NotNull MapModel mapModel, GameClient player1, GameClient player2, Initializer initializer) {
         this.initializer = initializer;
         boardModel = new BoardModel(mapModel);
-        lightPlayerPieces = darkPlayerPieces = defaultPieces =  mapModel.pieces;
+        lightPlayerPieces = darkPlayerPieces = defaultPieces = mapModel.pieces;
 
         //Randomly assign player colors
         if (new Random().nextBoolean()) {
@@ -66,13 +61,18 @@ public class GameController {
         lightPlayer.sendDownPlace(boardModel.getFields(BoardModel.Color.EMPTY));
     }
 
+    /**
+     * Asks the other player to make a move or place a piece based on the current game phase.
+     * If the current player is in the placing phase, the other player is prompted to place a piece.
+     * If in the moving phase, the other player is prompted to move a piece.
+     * If the other player has no valid moves, the game ends with the current player winning by enclosure.
+     */
     private void askOtherPlayer() {
         if (focusOnLight) {
             lightPlayer.sendDownNone();
             if (placingPhase) {
                 darkPlayer.sendDownPlace(boardModel.getFields(BoardModel.Color.EMPTY));
-            }
-            else {
+            } else {
                 List<Integer> movableFields = boardModel.getMovableFields(BoardModel.Color.DARK);
                 if (movableFields.isEmpty()) {
                     endGame(true);
@@ -85,8 +85,7 @@ public class GameController {
             darkPlayer.sendDownNone();
             if (placingPhase) {
                 lightPlayer.sendDownPlace(boardModel.getFields(BoardModel.Color.EMPTY));
-            }
-            else {
+            } else {
                 List<Integer> movableFields = boardModel.getMovableFields(BoardModel.Color.LIGHT);
                 if (movableFields.isEmpty()) {
                     endGame(true);
@@ -98,14 +97,26 @@ public class GameController {
         }
     }
 
+    /** Returns the color of the current player based on whose turn it is.
+     *
+     * @return the color of the current player
+     */
     private BoardModel.Color currentPlayerColor() {
         return focusOnLight ? BoardModel.Color.LIGHT : BoardModel.Color.DARK;
     }
 
+    /** Returns the color of the opponent player based on whose turn it is.
+     *
+     * @return the color of the opponent player
+     */
     private BoardModel.Color opponentPlayerColor() {
         return focusOnLight ? BoardModel.Color.DARK : BoardModel.Color.LIGHT;
     }
 
+    /**
+     * Decreases the number of pieces of the opponent player by one.
+     * If the opponent player has less than 3 pieces after the decrease, the game ends with the current player winning.
+     */
     private void decreaseOpponentPieces() {
         if (focusOnLight) {
             lightPlayer.removePieceFromOpponent();
@@ -124,14 +135,29 @@ public class GameController {
         }
     }
 
+    /** Returns the GameClient of the current player based on whose turn it is.
+     *
+     * @return the GameClient of the current player
+     */
     private GameClient currentPlayer() {
         return focusOnLight ? lightPlayer : darkPlayer;
     }
 
-    private GameClient opponentPlayer(){
+    /** Returns the GameClient of the opponent player based on whose turn it is.
+     *
+     * @return the GameClient of the opponent player
+     */
+    private GameClient opponentPlayer() {
         return focusOnLight ? darkPlayer : lightPlayer;
     }
 
+    /**
+     * Receives input from the current player and processes it based on the current game phase.
+     * Depending on whether the game is in the mill phase, placing phase, or moving phase,
+     * the input is handled accordingly to update the game state.
+     *
+     * @param field the position on the board where the player wants to place or move a piece
+     */
     public void receiveInput(int field) {
         initializer.log("Received field: " + field);
 
@@ -140,16 +166,26 @@ public class GameController {
         } else {
             if (placingPhase) {
                 placingPhaseMove(field);
-            }else {
+            } else {
                 movingPhaseMove(field);
             }
         }
     }
 
+    /** Notifies the current player that their last move was invalid and prompts them to try again.
+     * The current player retains focus for input.
+     */
     private void invalidMove() {
         currentPlayer().giveFocus();
     }
 
+    /** Handles a move during the mill phase, allowing the current player to remove an opponent's piece.
+     * Validates the move to ensure the selected field contains an opponent's piece that is not part of a mill.
+     * If valid, removes the piece, updates the game state, and switches turns.
+     * If invalid, notifies the current player and prompts them to try again.
+     *
+     * @param field the position on the board where the player wants to remove an opponent's piece
+     */
     private void millPhaseMove(int field) {
         initializer.log("Mill phase move on field: " + field);
         if (boardModel.isFieldOfColor(field, opponentPlayerColor()) && !boardModel.isFieldInMill(field)) { // Check if the field has an opponent's piece -> valid move
@@ -164,10 +200,18 @@ public class GameController {
         }
     }
 
+    /** Handles a move during the placing phase, allowing the current player to place a piece on the board.
+     * Validates the move to ensure the selected field is empty.
+     * If valid, places the piece, updates the game state, and checks for mills.
+     * If a mill is formed, enters the mill phase; otherwise, switches turns.
+     * If invalid, notifies the current player and prompts them to try again.
+     *
+     * @param field the position on the board where the player wants to place a piece
+     */
     private void placingPhaseMove(int field) {
         if (boardModel.isFieldEmpty(field)) { // Check if the field is empty -> valid move
             //this call puts the piece and checks for mills
-            if(++placedPieces == defaultPieces * 2) {
+            if (++placedPieces == defaultPieces * 2) {
                 placingPhase = false;
             }
             currentPlayer().placePiece();
@@ -184,10 +228,22 @@ public class GameController {
         }
     }
 
+    /** Returns the number of pieces the current player has on the board.
+     *
+     * @return the number of pieces the current player has
+     */
     private int getCurrentPlayerPieces() {
         return focusOnLight ? lightPlayerPieces : darkPlayerPieces;
     }
 
+    /** Handles a move during the moving phase, allowing the current player to select and move a piece on the board.
+     * Validates the selection and movement of pieces, ensuring that moves are legal according to game rules.
+     * If a piece is selected, highlights possible moves; if a move is made, updates the game state and checks for mills.
+     * If a mill is formed, enters the mill phase; otherwise, switches turns.
+     * If invalid, notifies the current player and prompts them to try again.
+     *
+     * @param field the position on the board where the player wants to select or move a piece
+     */
     private void movingPhaseMove(int field) {
         if (selectedPiece == null) { // No piece selected yet
             if (boardModel.isFieldOfColor(field, currentPlayerColor())) { // Check if the field has the current player's piece -> valid selection
@@ -207,6 +263,7 @@ public class GameController {
         } else { // A piece is already selected
             if (field == selectedPiece) { // Deselect the piece
                 selectedPiece = null;
+                currentPlayer().sendDownNone(); // Clear highlights
                 currentPlayer().sendDownMove(boardModel.getMovableFields(currentPlayerColor()));
             } else if (boardModel.isFieldEmpty(field) && boardModel.areNeighbors(selectedPiece, field) || (focusOnLight ? lightPlayerPieces : darkPlayerPieces) == 3 && boardModel.isFieldEmpty(field)) { // Check if the field is empty and a valid move -> valid move
                 //this call moves the piece and checks for mills
@@ -215,6 +272,10 @@ public class GameController {
                     mill();
                 } else askOtherPlayer();
                 selectedPiece = null;
+            } else if(!boardModel.getPossibleMoves(selectedPiece, getCurrentPlayerPieces() == 3).isEmpty() && boardModel.isFieldOfColor(field, currentPlayerColor())) { // Select a different piece
+                selectedPiece = field;
+                currentPlayer().sendDownNone();
+                currentPlayer().sendDownMoveTo(field, boardModel.getPossibleMoves(field, getCurrentPlayerPieces() == 3));
             } else {
                 initializer.log("Invalid move to field: " + field);
                 invalidMove();
@@ -222,6 +283,10 @@ public class GameController {
         }
     }
 
+    /** Initiates the mill phase, allowing the current player to remove an opponent's piece.
+     * Checks for removable opponent pieces and prompts the current player to select one.
+     * If no removable pieces are found, exits the mill phase and switches turns.
+     */
     private void mill() {
         initializer.log("Mill formed!");
         List<Integer> removableFields = boardModel.getFields(opponentPlayerColor(), false);
@@ -237,9 +302,14 @@ public class GameController {
         }
     }
 
+    /**
+     * Ends the game and logs the reason for the win.
+     * Notifies both players that the game has ended and returns to the main menu.
+     *
+     * @param enclosed true if the win was due to enclosing all opponent pieces, false if due to opponent having less than 3 pieces
+     */
     private void endGame(boolean enclosed) {
-        initializer.log(currentPlayer().toString()+ " won by "+
-                (enclosed ? "enclosing all opponent pieces." : "getting the number of opponent pieces under 3."));
+        initializer.log(currentPlayer().toString() + " won by " + (enclosed ? "enclosing all opponent pieces." : "getting the number of opponent pieces under 3."));
         lightPlayer.endGame();
         darkPlayer.endGame();
         initializer.backToMenu();
@@ -258,7 +328,15 @@ public class GameController {
         return boardModel.putPiece(field, color);
     }
 
-    private boolean movePiece(int from, int to, BoardModel.Color color){
+    /**
+     * Moves a piece on the board and updates both players' views.
+     *
+     * @param from  the starting position of the piece
+     * @param to    the destination position of the piece
+     * @param color the color of the piece
+     * @return true if moving the piece forms a mill, false otherwise
+     */
+    private boolean movePiece(int from, int to, BoardModel.Color color) {
         darkPlayer.sendDownColor(from, BoardModel.Color.EMPTY);
         lightPlayer.sendDownColor(from, BoardModel.Color.EMPTY);
         darkPlayer.sendDownColor(to, color);
@@ -266,7 +344,12 @@ public class GameController {
         return boardModel.movePiece(from, to);
     }
 
-
+    /**
+     * Handles the exit of a player from the game.
+     * Logs the exit event, ends the game for both players, and returns to the main menu.
+     *
+     * @param playerColor the color of the player who exited
+     */
     public void exitGame(PlayerColor playerColor) {
         initializer.log("Player " + playerColor + " exited the game.");
         lightPlayer.endGame();

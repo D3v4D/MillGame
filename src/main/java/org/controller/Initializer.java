@@ -1,12 +1,9 @@
 package org.controller;
 
-import org.jetbrains.annotations.NotNull;
-import org.model.*;
-import org.util.MapModel;
-import org.view.*;
-
 import com.google.gson.Gson;
-import org.view.ComponentGenerator;
+import org.jetbrains.annotations.NotNull;
+import org.util.MapModel;
+import org.view.MainMenuScreen;
 import org.view.swing.SwingComponentGenerator;
 
 import java.io.File;
@@ -19,64 +16,29 @@ import java.util.concurrent.Executors;
  * including game screens, saved games, and map selection.
  */
 public class Initializer {
-    MainMenuScreen mainMenuScreen;
-    GameController gameController;
     public MapModel mapModel;
-    Gson gson = new Gson();
-
     public String currentMap;
     public String[] maps;
-
     public String currentSave;
     public String[] saves;
-
-    public ConcurrentStack<Integer> pressed = new ConcurrentStack<>();
+    MainMenuScreen mainMenuScreen;
+    GameController gameController;
+    Gson gson = new Gson();
 
     /**
-     * Constructs the `InitAll` class, setting up initial configurations
-     * and managing the game's main threads (Swing elements, and the business logic are running on different threads).
+     * Constructs an `Initializer` object that sets up the available maps and saves,
+     * initializes the main menu screen, and selects the default map and save.
      */
-    public Initializer(ComponentGenerator componentGenerator) {
+    public Initializer() {
         maps = setFromFile("maps");
-        currentMap = maps[0];
         saves = setFromFile("saves");
+        if (maps.length == 0 || saves.length == 0) {
+            throw new IllegalStateException("No maps or saves found in the respective folders.");
+        }
+        currentMap = maps[0];
         currentSave = saves[saves.length - 1];
 
-        mainMenuScreen = new MainMenuScreen(this, componentGenerator);
-    }
-
-
-    public void log(String s) {
-        System.out.println(s);
-    }
-
-    /**
-     * Starts a new game by loading the selected map and initializing the game controller
-     * with two user game clients.
-     */
-    public void startGame() {
-        mapModel = loadMap();
-        gameController = new GameController(mapModel,
-                new UserGameClient(new SwingComponentGenerator(Executors.newFixedThreadPool(2))),
-                new UserGameClient(new SwingComponentGenerator(Executors.newFixedThreadPool(2))),
-                this
-        );
-    }
-
-    /**
-     * Returns to the main menu screen.
-     */
-    public void backToMenu() {
-        mainMenuScreen.show();
-    }
-
-    /**
-     * Gets the current save file name.
-     *
-     * @return the name of the currently selected save file
-     */
-    public String getCurrentSave() {
-        return currentSave;
+        mainMenuScreen = new MainMenuScreen(this, new SwingComponentGenerator(Executors.newFixedThreadPool(1)));
     }
 
     /**
@@ -94,6 +56,39 @@ public class Initializer {
             ret[i] = (subFiles[i].getName().split("\\.")[0]);
         }
         return ret;
+    }
+
+    /**
+     * Starts a new game by loading the selected map and initializing the game controller
+     * with two user game clients.
+     */
+    public void startGame() {
+        mapModel = loadMap();
+        gameController = new GameController(mapModel,
+                new UserGameClient(new SwingComponentGenerator(Executors.newFixedThreadPool(1))),
+                new UserGameClient(new SwingComponentGenerator(Executors.newFixedThreadPool(1))),
+                this
+        );
+    }
+
+    public void log(String s) {
+        System.out.println(s);
+    }
+
+    /**
+     * Returns to the main menu screen.
+     */
+    public void backToMenu() {
+        mainMenuScreen.show();
+    }
+
+    /**
+     * Gets the current save file name.
+     *
+     * @return the name of the currently selected save file
+     */
+    public String getCurrentSave() {
+        return currentSave;
     }
 
     /**
@@ -116,7 +111,7 @@ public class Initializer {
         try (FileReader fr = new FileReader("maps/".concat(currentMap).concat(".json"))) {
             return gson1.fromJson(fr, MapModel.class);
         } catch (Exception e) {
-            log(e.toString() + " Map file not found.");
+            log(e + " Map file not found.");
         }
         return null;
     }
