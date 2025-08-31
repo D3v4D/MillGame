@@ -22,6 +22,40 @@ public abstract class GameClient {
     int myPiecesRemoved = 0;
     int opponentPiecesLeftToPlace = 0;
     int opponentPiecesRemoved = 0;
+
+    /**
+     * Returns the color assigned to the player.
+     *
+     * @return The player's color (e.g., LIGHT or DARK).
+     */
+    public int getMyPiecesLeftToPlace() {
+        return myPiecesLeftToPlace;
+    }
+    /**
+     * Returns the number of pieces that have been removed from the player's board.
+     *
+     * @return The count of pieces removed from the player.
+     */
+    public int getMyPiecesRemoved() {
+        return myPiecesRemoved;
+    }
+    /**
+     * Returns the number of opponent pieces left to place on the board.
+     *
+     * @return The count of opponent pieces left to place.
+     */
+    public int getOpponentPiecesLeftToPlace() {
+        return opponentPiecesLeftToPlace;
+    }
+    /**
+     * Returns the number of opponent pieces that have been removed from the board.
+     *
+     * @return The count of opponent pieces removed.
+     */
+    public int getOpponentPiecesRemoved() {
+        return opponentPiecesRemoved;
+    }
+
     /**
      * Indicates whether the game client currently has focus for user input.
      * This flag can be used to determine if the client is active and should respond to user actions.
@@ -64,7 +98,7 @@ public abstract class GameClient {
      * Converts a combination of board color and status to a corresponding field type for the component generator.
      *
      * @param color  The color of the board field (EMPTY, LIGHT, DARK).
-     * @param status The status of the field (NONE, REMOVABLE, MOVABLE, CHOSEN).
+     * @param state The status of the field (NONE, REMOVABLE, MOVABLE, CHOSEN).
      * @return The corresponding FieldType for the component generator.
      * @throws IllegalArgumentException if an invalid combination of color and status is provided.
      */
@@ -147,11 +181,12 @@ public abstract class GameClient {
         }
     }
 
+
     /**
-     * Updates the color of a single field on the game board.
+     * Updates the color of multiple fields on the game board to the same specified color.
      *
-     * @param field The index of the field to be updated.
-     * @param color The new color to be assigned to the specified field.
+     * @param fields A list of field indices to be updated.
+     * @param color  The new color to be assigned to the specified fields.
      */
     public void sendDownColor(@NotNull List<Integer> fields, BoardModel.Color color) {
         for (Integer field : fields) {
@@ -212,6 +247,10 @@ public abstract class GameClient {
      * This method should be called when the game reaches a conclusion, such as when a player wins or a draw occurs.
      */
     abstract void endGame();
+
+    public void saveGame() {
+        gameController.saveGame();
+    }
 
     /**
      * Enum representing the status of a board field.

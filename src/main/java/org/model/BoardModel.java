@@ -27,6 +27,16 @@ public class BoardModel {
     //1-based indexing for easier understanding
     private final int[][] groups;
 
+    private final MapModel mapModel;
+
+    /** Gets the {@code MapModel} associated with this board.
+     *
+     * @return The {@code MapModel} instance.
+     */
+    public MapModel getMapModel() {
+        return mapModel;
+    }
+
     /** Checks if a field is empty.
      *
      * @param field The index of the field to check.
@@ -55,6 +65,12 @@ public class BoardModel {
         return pieces[field].inMill;
     }
 
+    /** Checks if two fields are neighbors.
+     *
+     * @param a The index of the first field.
+     * @param b The index of the second field.
+     * @return {@code true} if the fields are neighbors, {@code false} otherwise.
+     */
     public boolean areNeighbors(int a, int b) {
         return boardMap.get(a).contains(b);
     }
@@ -62,10 +78,10 @@ public class BoardModel {
     /**
      * Constructs a new {@code BoardModel} instance.
      *
-     * @param f A map representing the neighboring fields for each field on the board.
-     * @param g A list of groups representing the groups of three pieces that can form a mill.
+     * @param mapModel The {@code MapModel} instance containing the board layout and groups.
      */
     public BoardModel(MapModel mapModel) {
+        this.mapModel = mapModel;
         pieces = new Piece[mapModel.fields.size() + 1];
         for (int i = 1; i < pieces.length; i++) {
             pieces[i] = new Piece();
@@ -173,6 +189,15 @@ public class BoardModel {
             }
         }
         return ret;
+    }
+
+    /**
+     * Gets the total number of fields on the board.
+     *
+     * @return The number of fields.
+     */
+    public int getNumberOfFields() {
+        return pieces.length - 1;
     }
 
     /**
@@ -327,9 +352,25 @@ public class BoardModel {
     }
 
     /**
+     * Gets the color of the piece at the specified field.
+     *
+     * @param i The index of the field.
+     * @return The color of the piece at the specified field.
+     */
+    public Color getFieldColor(int i) {
+        return pieces[i].color;
+    }
+
+    /**
      * Enum representing the color states of a game piece.
      */
-    public enum Color {LIGHT, DARK, EMPTY}
+    public enum Color {
+        /** Light color. */
+        LIGHT,
+        /** Dark color. */
+        DARK,
+        /** Empty field (no piece). */
+        EMPTY}
 
     /**
      * Constants representing boolean values as integers.

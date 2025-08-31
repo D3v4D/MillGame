@@ -54,11 +54,13 @@ public class GameScreen {
             gameClient.exitGame();
         }, 20);
 
-        /*componentGenerator.addButton("Save Game", 800, 600, 200, 50, () -> {
-            //save game
-        }, 20);*/
+        componentGenerator.addButton("Save Game", 800, 600, 200, 50, () -> {
+            gameClient.saveGame();
+        }, 20);
 
-        componentGenerator.addUITestGif();
+
+        //For UI testing
+//        componentGenerator.addUITestGif();
 
         componentGenerator.show();
     }
@@ -75,22 +77,49 @@ public class GameScreen {
         return componentGenerator.drawStack(x, 30, 70, 20, 10, unit, color, 100, playerColor == myColor);
     }
 
+    /** Changes the text of a label on the game screen.
+     *
+     * @param labelID The ID of the label to be modified.
+     * @param text    The new text to set for the label.
+     */
     public void changeLabelText(int labelID, String text) {
         componentGenerator.modifyLabelText(labelID, text);
     }
 
+    /** Updates the graphical representation of multiple fields on the game board.
+     *
+     * @param fields    A list of field indices to be updated.
+     * @param fieldType The new type to set for the specified fields.
+     */
     public void updateFieldType(@NotNull java.util.List<Integer> fields, ComponentGenerator.FieldType fieldType) {
         componentGenerator.updateFieldGraphic(fields, fieldType);
     }
 
+    /** Updates the graphical representation of a specific field on the game board.
+     *
+     * @param field     The index of the field to be updated.
+     * @param fieldType The new type to set for the specified field.
+     */
     public void updateFieldType(int field, ComponentGenerator.FieldType fieldType) {
         componentGenerator.updateFieldGraphic(field, fieldType);
     }
 
+    /**
+     * Hides the game screen.
+     */
     public void hide() {
         componentGenerator.hide();
     }
 
+    /**
+     * Updates the stacks of pieces for both players based on the current game state.
+     *
+     * @param color                    The color of the player making the update (LIGHT or DARK).
+     * @param myUnitsLeftToPlace       The number of units left to place for the player.
+     * @param myUnitsRemoved           The number of units removed from the player.
+     * @param opponentUnitsLeftToPlace The number of units left to place for the opponent.
+     * @param opponentUnitsRemoved     The number of units removed from the opponent.
+     */
     public void updateStacks(PlayerColor color, int myUnitsLeftToPlace, int myUnitsRemoved, int opponentUnitsLeftToPlace, int opponentUnitsRemoved) {
         if(color == PlayerColor.LIGHT){
             componentGenerator.modifyStack(lightStackID, opponentUnitsRemoved, ComponentGenerator.Color.darkBrown, myUnitsLeftToPlace, ComponentGenerator.Color.lightBrown);
@@ -102,14 +131,23 @@ public class GameScreen {
         }
     }
 
+    /**
+     * Displays the game screen.
+     */
     public void show() {
         componentGenerator.show();
     }
 
+    /**
+     * Disposes of the game screen and releases any associated resources.
+     */
     public void dispose() {
         componentGenerator.dispose();
     }
 
+    /**
+     * Ends the game and disposes of the game screen.
+     */
     public void endGame(){
         dispose();
     }

@@ -12,6 +12,13 @@ import java.util.HashMap;
 public class MapModel {
 
     /**
+     * Constructs a MapModel with default values.
+     */
+    public MapModel(){
+
+    }
+
+    /**
      * A list of positions on the map, represented as tuples of coordinates.
      * Each position corresponds to a potential piece location.
      */
@@ -39,5 +46,5 @@ public class MapModel {
     /**
      * The number of pieces available in the game (per player).
      */
-    public int pieces;
+    public int pieces = 9;
 }

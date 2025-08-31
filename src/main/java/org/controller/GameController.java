@@ -2,6 +2,7 @@ package org.controller;
 
 import org.jetbrains.annotations.NotNull;
 import org.model.BoardModel;
+import org.model.SaveState;
 import org.util.MapModel;
 import org.util.PlayerColor;
 
@@ -59,6 +60,57 @@ public class GameController {
 
         //Start the game with the light player placing first
         lightPlayer.sendDownPlace(boardModel.getFields(BoardModel.Color.EMPTY));
+    }
+
+    /** Constructs a GameController with a saved game state, players, and initializer.
+     *
+     * @param saveState   the saved state of the game
+     * @param lightPlayer the game client for the light player
+     * @param darkPlayer  the game client for the dark player
+     * @param initializer the initializer to return to the menu after the game ends
+     */
+    public GameController(SaveState saveState, GameClient lightPlayer, GameClient darkPlayer, Initializer initializer) {
+        this.initializer = initializer;
+        boardModel = new BoardModel(saveState.mapModel);
+        defaultPieces = saveState.piecesPerPlayer;
+        millPhase = saveState.millPhase;
+        focusOnLight = saveState.focusOnLight;
+        lightPlayerPieces = defaultPieces - saveState.lightPiecesLeftToPlace;
+        darkPlayerPieces = defaultPieces - saveState.darkPiecesLeftToPlace;
+        placedPieces = (defaultPieces * 2) - (lightPlayerPieces + darkPlayerPieces);
+        placingPhase = (placedPieces < defaultPieces * 2);
+
+
+
+
+        this.darkPlayer = darkPlayer;
+        this.lightPlayer = lightPlayer;
+
+        //Assign player colors
+        lightPlayer.initGameClient(saveState.mapModel, PlayerColor.LIGHT, this);
+        darkPlayer.initGameClient(saveState.mapModel, PlayerColor.DARK, this);
+
+        //Set the board to the saved state
+        for (int i = 1; i <= saveState.numberOfFields; i++)
+            putPiece(i, saveState.fields[i]);
+
+
+        //Start the game with the correct phase and player
+        if (millPhase) {
+            List<Integer> removableFields = boardModel.getFields(opponentPlayerColor(), false);
+            if (!removableFields.isEmpty()) {
+                currentPlayer().sendDownRemove(removableFields);
+            } else {
+                millPhase = false;
+                askOtherPlayer();
+            }
+        } else {
+            if (placingPhase) {
+                currentPlayer().sendDownPlace(boardModel.getFields(BoardModel.Color.EMPTY));
+            } else {
+                currentPlayer().sendDownMove(boardModel.getMovableFields(currentPlayerColor()));
+            }
+        }
     }
 
     /**
@@ -355,5 +407,26 @@ public class GameController {
         lightPlayer.endGame();
         darkPlayer.endGame();
         initializer.backToMenu();
+    }
+
+    /**
+     * Saves the current game state using the initializer's save functionality.
+     * Constructs a SaveState object with the current board configuration, player pieces,
+     * game phase, and other relevant information before passing it to the initializer.
+     */
+    public void saveGame() {
+        initializer.log("Saving game state...");
+        SaveState saveState = new SaveState();
+        saveState.numberOfFields = boardModel.getNumberOfFields();
+        saveState.fields = new BoardModel.Color[saveState.numberOfFields + 1];
+        for (int i = 1; i <= saveState.numberOfFields; i++)
+            saveState.fields[i] = boardModel.getFieldColor(i);
+        saveState.piecesPerPlayer = defaultPieces;
+        saveState.millPhase = millPhase;
+        saveState.focusOnLight = focusOnLight;
+        saveState.mapModel = boardModel.getMapModel();
+        saveState.lightPiecesLeftToPlace = lightPlayer.getMyPiecesLeftToPlace();
+        saveState.darkPiecesLeftToPlace = darkPlayer.getMyPiecesLeftToPlace();
+        initializer.saveGame(saveState);
     }
 }

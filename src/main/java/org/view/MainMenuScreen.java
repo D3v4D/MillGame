@@ -24,6 +24,7 @@ public class MainMenuScreen {
      * Constructor to initialize the GUI and set up components.
      *
      * @param init The main controller that manages the game initialization logic.
+     * @param componentGenerator The component generator used to create and manage GUI components.
      */
     public MainMenuScreen(Initializer init, ComponentGenerator componentGenerator) {
         int x = 800, y = 450;
@@ -47,7 +48,6 @@ public class MainMenuScreen {
         () -> {
             componentGenerator.hide();
             initializer.loadGame();
-            startGame();
         }, 10);
 
         componentGenerator.addButton("Exit game", 200, 275, 400, 50, () -> {
@@ -65,19 +65,25 @@ public class MainMenuScreen {
         componentGenerator.show();
     }
 
-
+    /**
+     * Hides the main menu GUI and any open dialogs.
+     */
     public void hide() {
         componentGenerator.hide();
         if (mapChooser != null) mapChooser.hide();
         if (saveChooser != null) saveChooser.hide();
     }
 
+    /**
+     * Displays the main menu GUI.
+     */
     public void show() {
         componentGenerator.show();
     }
 
     /**
      * Updates the text of the "Start Game" button with the currently selected map.
+        * @param startButtonId The ID of the "Start Game" button to update.
      */
     public void startButtonText(int startButtonId) {
         componentGenerator.modifyButtonText(startButtonId, "Start Game On ".concat(initializer.getCurrentMap())); //TODO: FIX THIS STRING
@@ -85,6 +91,7 @@ public class MainMenuScreen {
 
     /**
      * Updates the text of the "Load Save" button with the currently selected save.
+     * @param loadButtonId The ID of the "Load Save" button to update.
      */
     public void loadButtonText(int loadButtonId) {
         componentGenerator.modifyButtonText(loadButtonId, "Load Game (".concat(initializer.getCurrentSave().concat(")"))); //TODO: FIX THIS STRING
@@ -92,13 +99,14 @@ public class MainMenuScreen {
 
     /**
      * Starts a new game.
+     * This method is called when the player clicks the "Start Game" button.
      */
     public void startGame() {
         initializer.startGame();
     }
 
-    /**
-     * Opens the map selection dialog for the player.
+    /** Opens the map selection dialog for the player.
+     * @param startButtonId The ID of the "Start Game" button to update its text after map selection.
      */
     public void chooseMap(int startButtonId) {
         if (mapChooser == null) {
@@ -120,6 +128,7 @@ public class MainMenuScreen {
 
     /**
      * Opens the save selection dialog for the player.
+     * @param loadButtonId The ID of the "Load Save" button to update its text after save selection.
      */
 
     public void chooseSave(int loadButtonId) {

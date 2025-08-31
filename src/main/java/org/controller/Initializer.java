@@ -2,12 +2,14 @@ package org.controller;
 
 import com.google.gson.Gson;
 import org.jetbrains.annotations.NotNull;
+import org.model.SaveState;
 import org.util.MapModel;
 import org.view.MainMenuScreen;
 import org.view.swing.SwingComponentGenerator;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.concurrent.Executors;
 
@@ -71,6 +73,11 @@ public class Initializer {
         );
     }
 
+    /**
+     * Logs a message to the console.
+     *
+     * @param s the message to log
+     */
     public void log(String s) {
         System.out.println(s);
     }
@@ -104,8 +111,7 @@ public class Initializer {
      * Loads the map model from a JSON file based on the currently selected map.
      *
      * @return the loaded MapModel object
-     * @throws IOException if there is an error reading the file
-     */
+     * */
     public MapModel loadMap() {
         Gson gson1 = new Gson();
         try (FileReader fr = new FileReader("maps/".concat(currentMap).concat(".json"))) {
@@ -117,31 +123,39 @@ public class Initializer {
     }
 
     /**
-     * Saves the currently running game (by recording the previously pressed buttons)
+     * Saves the current game state to a JSON file based on the current time
+     * and updates the list of available saves.
+     * @param saveState the current state of the game to be saved
      */
-    public void saveGame(String filename) {
-//        try {
-//            GameState gs = new GameState(mapModel, pressed);
-//            FileWriter fw = new FileWriter(filename);
-//            gson.toJson(gs, fw);
-//            fw.close();
-//            saves = setFromFile("saves");
-//        } catch (Exception e) {
-//        }
+    public void saveGame(SaveState saveState) {
+        try {
+            File dir = new File("saves");
+            if (!dir.exists()) dir.mkdirs();
+            String filename = "saves/".concat(String.valueOf(System.currentTimeMillis())).concat(".json");
+            FileWriter fw = new FileWriter(filename);
+            gson.toJson(saveState, fw);
+            fw.close();
+            saves = setFromFile("saves"); //this can be optimized
+            log("Game saved to " + filename);
+        } catch (Exception e) {
+            log(e + " Could not save the game.");
+        }
     }
 
     /**
-     * Loads the currently chosen save (by "replaying" the game based upon the list of buttons that have been pressed)
+     * Loads a saved game state from a JSON file based on the currently selected save.
      */
     public void loadGame() {
-//        try {
-//            FileReader fr = new FileReader("saves/".concat(currentSave).concat(".json"));
-//            GameState gs = gson.fromJson(fr, GameState.class);
-//            mapModel = gs.mapModel;
-//            pressed = gs.pressed;
-//            pressed.reload();
-//            fr.close();
-//        } catch (Exception e) {
-//        }
+        try (FileReader fr = new FileReader("saves/".concat(currentSave).concat(".json"))) {
+            SaveState saveState = gson.fromJson(fr, SaveState.class);
+            mapModel = loadMap();
+            gameController = new GameController(saveState,
+                    new UserGameClient(new SwingComponentGenerator(Executors.newFixedThreadPool(1))),
+                    new UserGameClient(new SwingComponentGenerator(Executors.newFixedThreadPool(1))),
+                    this
+            );
+        } catch (Exception e) {
+            log(e + " Save file not found.");
+        }
     }
 }

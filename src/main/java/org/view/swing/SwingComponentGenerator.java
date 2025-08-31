@@ -17,6 +17,10 @@ import java.util.function.Consumer;
 import static java.awt.Font.getFont;
 import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 
+/**
+ * SwingComponentGenerator is a concrete implementation of the ComponentGenerator interface using Java Swing.
+ * It provides methods to create and manage various UI components such as buttons, labels, and game fields.
+ */
 public class SwingComponentGenerator implements ComponentGenerator {
 
     private JFrame frame;
@@ -34,21 +38,42 @@ public class SwingComponentGenerator implements ComponentGenerator {
     private java.awt.Color darkBrown = new java.awt.Color(Color.darkBrown.r(), Color.darkBrown.g(), Color.darkBrown.b());
     private java.awt.Color lightGreen = new java.awt.Color(Color.lightGreen.r(), Color.lightGreen.g(), Color.lightGreen.b());
 
+    /** Constructor for SwingComponentGenerator.
+     *
+     * @param backendPool An ExecutorService for handling backend tasks.
+     */
     public SwingComponentGenerator(ExecutorService backendPool) {
         this.backendPool = backendPool;
     }
 
-
+    /**
+     * Modifies the text of a button identified by its ID.
+     *
+     * @param ID   The ID of the button to modify.
+     * @param text The new text to set on the button.
+     */
     @Override
     public void modifyButtonText(int ID, String text) {
         buttonList.get(ID).setText(text);
     }
 
+    /**
+     * Modifies the text of a label identified by its ID.
+     *
+     * @param ID   The ID of the label to modify.
+     * @param text The new text to set on the label.
+     */
     @Override
     public void modifyLabelText(int ID, String text) {
         labelList.get(ID).setText(text);
     }
 
+    /**
+     * Updates the graphical representation of multiple game fields based on their types.
+     *
+     * @param fieldList A list of field IDs to update.
+     * @param type      The new type to set for the specified fields.
+     */
     @Override
     public void updateFieldGraphic(@NotNull java.util.List<Integer> fieldList, FieldType type) {
         fieldList.forEach((i) -> {
@@ -57,6 +82,12 @@ public class SwingComponentGenerator implements ComponentGenerator {
         });
     }
 
+    /**
+     * Updates the graphical representation of a single game field based on its type.
+     *
+     * @param field The ID of the field to update.
+     * @param type  The new type to set for the specified field.
+     */
     @Override
     public void updateFieldGraphic(int field, FieldType type) {
         types.set(field, type);

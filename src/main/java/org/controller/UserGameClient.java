@@ -81,11 +81,10 @@ public class UserGameClient extends GameClient {
         this.gameScreen = new GameScreen(componentGenerator, mapModel, playerColor, this);
     }
 
-    /**
-     * Sends the selected field up to the GameController
+    /** Sends a message up to the game controller indicating that the player has clicked on a field.
+     * If it is the player's turn (focus is true), the input is forwarded to the game controller.
      *
-     * @param field the selected field
-     * @return
+     * @param field the index of the field that was clicked
      */
     @Override
     public void sendUp(int field) {
@@ -217,12 +216,8 @@ public class UserGameClient extends GameClient {
         gameScreen.changeLabelText(0, "Select a destination");
     }
 
-    /**
-     * Converts the given board color and state into a corresponding field type for UI representation.
-     *
-     * @param color the color of the board piece (e.g., LIGHT, DARK, EMPTY)
-     * @param state the state of the piece (e.g., NONE, MOVABLE, CHOSEN, REMOVABLE)
-     * @return the corresponding field type for UI representation
+    /** Exits the game and notifies the game controller.
+     * This method is called when the player chooses to exit the game.
      */
     @Override
     public void exitGame() {
