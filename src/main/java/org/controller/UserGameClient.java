@@ -18,6 +18,14 @@ public class UserGameClient extends GameClient {
     private final ComponentGenerator componentGenerator;
     private GameScreen gameScreen; //view, from which players can interact with the game
 
+    @Override
+    public void setPieces(int myPiecesLeftToPlace, int myPiecesRemoved, int opponentPiecesLeftToPlace, int opponentPiecesRemoved) {
+        super.setPieces(myPiecesLeftToPlace, myPiecesRemoved, opponentPiecesLeftToPlace, opponentPiecesRemoved);
+        if (gameScreen != null) {
+            gameScreen.updateStacks(playerColor, myPiecesLeftToPlace, myPiecesRemoved, opponentPiecesLeftToPlace, opponentPiecesRemoved);
+        }
+    }
+
     /**
      * Constructs a `UserGameClient` with the specified `ComponentGenerator`.
      *

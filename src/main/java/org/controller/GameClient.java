@@ -23,37 +23,11 @@ public abstract class GameClient {
     int opponentPiecesLeftToPlace = 0;
     int opponentPiecesRemoved = 0;
 
-    /**
-     * Returns the color assigned to the player.
-     *
-     * @return The player's color (e.g., LIGHT or DARK).
-     */
-    public int getMyPiecesLeftToPlace() {
-        return myPiecesLeftToPlace;
-    }
-    /**
-     * Returns the number of pieces that have been removed from the player's board.
-     *
-     * @return The count of pieces removed from the player.
-     */
-    public int getMyPiecesRemoved() {
-        return myPiecesRemoved;
-    }
-    /**
-     * Returns the number of opponent pieces left to place on the board.
-     *
-     * @return The count of opponent pieces left to place.
-     */
-    public int getOpponentPiecesLeftToPlace() {
-        return opponentPiecesLeftToPlace;
-    }
-    /**
-     * Returns the number of opponent pieces that have been removed from the board.
-     *
-     * @return The count of opponent pieces removed.
-     */
-    public int getOpponentPiecesRemoved() {
-        return opponentPiecesRemoved;
+    public void setPieces(int myPiecesLeftToPlace, int myPiecesRemoved, int opponentPiecesLeftToPlace, int opponentPiecesRemoved) {
+        this.myPiecesLeftToPlace = myPiecesLeftToPlace;
+        this.myPiecesRemoved = myPiecesRemoved;
+        this.opponentPiecesLeftToPlace = opponentPiecesLeftToPlace;
+        this.opponentPiecesRemoved = opponentPiecesRemoved;
     }
 
     /**

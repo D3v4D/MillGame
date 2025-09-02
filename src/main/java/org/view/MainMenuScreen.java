@@ -115,8 +115,8 @@ public class MainMenuScreen {
 
             mapChooser.paintBackground(0, 0, 300, 150, 0, 0, 300, 150, new ComponentGenerator.Color(200, 200, 255), new ComponentGenerator.Color(100, 100, 200), 0);
 
-            mapChooser.addComboBox(initializer.maps, initializer.currentMap, 50, 25, 200, 25, (String map) -> {
-                initializer.currentMap = map;
+            mapChooser.addComboBox(initializer.getMaps(), initializer.getCurrentMap(), 50, 25, 200, 25, (String map) -> {
+                initializer.setCurrentMap(map);
                 startButtonText(startButtonId);
             }, 10);
 
@@ -139,8 +139,8 @@ public class MainMenuScreen {
             saveChooser.paintBackground(0, 0, 300, 150, 0, 0, 300, 150, new ComponentGenerator.Color(255, 200, 200), new ComponentGenerator.Color(200, 100, 100), 0);
 
 
-            saveChooser.addComboBox(initializer.saves, initializer.currentSave, 50, 25, 200, 25, (String save) -> {
-                initializer.currentSave = save;
+            saveChooser.addComboBox(initializer.getSaves(), initializer.getCurrentSave(), 50, 25, 200, 25, (String save) -> {
+                initializer.setCurrentSave(save);
                 loadButtonText(loadButtonId);
             }, 10);
 

@@ -11,19 +11,34 @@ public class SaveState {
     /** Constructs a SaveState object with default values.
      */
     public SaveState() {
-        numberOfFields = 0;
+        numberOfPiecesPlaced = 0;
         fields = new BoardModel.Color[0];
         piecesPerPlayer = 0;
         millPhase = false;
         focusOnLight = true;
-        lightPiecesLeftToPlace = 0;
-        darkPiecesLeftToPlace = 0;
+
+        lightPlayerPieces = 0;
+        darkPlayerPieces = 0;
+
         mapModel = new MapModel();
     }
 
-    /** The number of fields on the board.
+
+
+    public SaveState(int numberOfPiecesPlaced, BoardModel.Color[] fields, int piecesPerPlayer, boolean millPhase, boolean focusOnLight, int lightPlayerPieces, int darkPlayerPieces, MapModel mapModel) {
+        this.numberOfPiecesPlaced = numberOfPiecesPlaced;
+        this.fields = fields;
+        this.piecesPerPlayer = piecesPerPlayer;
+        this.millPhase = millPhase;
+        this.focusOnLight = focusOnLight;
+        this.lightPlayerPieces = lightPlayerPieces;
+        this.darkPlayerPieces = darkPlayerPieces;
+        this.mapModel = mapModel;
+    }
+
+    /** The number of pieces on the board.
      */
-    public int numberOfFields;
+    public int numberOfPiecesPlaced;
     /** The colors of the fields on the board.
      */
     public BoardModel.Color[] fields;
@@ -38,13 +53,13 @@ public class SaveState {
      */
     public boolean focusOnLight;
 
-    /** The number of pieces removed from the light player.
+    /** The number of pieces still in game for the light player. (unplaced pieces included)
      */
-    public int lightPiecesLeftToPlace;
+    public int lightPlayerPieces;
 
-    /** The number of pieces removed from the dark player.
+    /** The number of pieces still in game for the dark player. (unplaced pieces included)
      */
-    public int darkPiecesLeftToPlace;
+    public int darkPlayerPieces;
 
     /** Model representing the game map.
      */

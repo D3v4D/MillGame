@@ -10,7 +10,6 @@ import org.view.swing.SwingComponentGenerator;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.concurrent.Executors;
 
 /**
@@ -18,11 +17,11 @@ import java.util.concurrent.Executors;
  * including game screens, saved games, and map selection.
  */
 public class Initializer {
-    public MapModel mapModel;
-    public String currentMap;
-    public String[] maps;
-    public String currentSave;
-    public String[] saves;
+    private MapModel mapModel;
+    private String currentMap;
+    private String[] maps;
+    private String currentSave;
+    private String[] saves;
     MainMenuScreen mainMenuScreen;
     GameController gameController;
     Gson gson = new Gson();
@@ -32,13 +31,13 @@ public class Initializer {
      * initializes the main menu screen, and selects the default map and save.
      */
     public Initializer() {
-        maps = setFromFile("maps");
-        saves = setFromFile("saves");
-        if (maps.length == 0 || saves.length == 0) {
+        setMaps(setFromFile("maps"));
+        setSaves(setFromFile("saves"));
+        if (getMaps().length == 0 || getSaves().length == 0) {
             throw new IllegalStateException("No maps or saves found in the respective folders.");
         }
-        currentMap = maps[0];
-        currentSave = saves[saves.length - 1];
+        setCurrentMap(getMaps()[0]);
+        setCurrentSave(getSaves()[getSaves().length - 1]);
 
         mainMenuScreen = new MainMenuScreen(this, new SwingComponentGenerator(Executors.newFixedThreadPool(1)));
     }
@@ -65,8 +64,8 @@ public class Initializer {
      * with two user game clients.
      */
     public void startGame() {
-        mapModel = loadMap();
-        gameController = new GameController(mapModel,
+        setMapModel(loadMap());
+        gameController = new GameController(getMapModel(),
                 new UserGameClient(new SwingComponentGenerator(Executors.newFixedThreadPool(1))),
                 new UserGameClient(new SwingComponentGenerator(Executors.newFixedThreadPool(1))),
                 this
@@ -114,7 +113,7 @@ public class Initializer {
      * */
     public MapModel loadMap() {
         Gson gson1 = new Gson();
-        try (FileReader fr = new FileReader("maps/".concat(currentMap).concat(".json"))) {
+        try (FileReader fr = new FileReader("maps/".concat(getCurrentMap()).concat(".json"))) {
             return gson1.fromJson(fr, MapModel.class);
         } catch (Exception e) {
             log(e + " Map file not found.");
@@ -135,20 +134,28 @@ public class Initializer {
             FileWriter fw = new FileWriter(filename);
             gson.toJson(saveState, fw);
             fw.close();
-            saves = setFromFile("saves"); //this can be optimized
+            addNewSave(filename);
             log("Game saved to " + filename);
         } catch (Exception e) {
             log(e + " Could not save the game.");
         }
     }
 
+    private void addNewSave(String filename) {
+        String[] newSaves = new String[getSaves().length + 1];
+        System.arraycopy(getSaves(), 0, newSaves, 0, getSaves().length);
+        newSaves[getSaves().length] = filename.split("/")[1].split("\\.")[0];
+        setSaves(newSaves);
+        setCurrentSave(newSaves[newSaves.length - 1]);
+    }
+
     /**
      * Loads a saved game state from a JSON file based on the currently selected save.
      */
     public void loadGame() {
-        try (FileReader fr = new FileReader("saves/".concat(currentSave).concat(".json"))) {
+        try (FileReader fr = new FileReader("saves/".concat(getCurrentSave()).concat(".json"))) {
             SaveState saveState = gson.fromJson(fr, SaveState.class);
-            mapModel = loadMap();
+            setMapModel(loadMap());
             gameController = new GameController(saveState,
                     new UserGameClient(new SwingComponentGenerator(Executors.newFixedThreadPool(1))),
                     new UserGameClient(new SwingComponentGenerator(Executors.newFixedThreadPool(1))),
@@ -157,5 +164,37 @@ public class Initializer {
         } catch (Exception e) {
             log(e + " Save file not found.");
         }
+    }
+
+    public MapModel getMapModel() {
+        return mapModel;
+    }
+
+    public void setMapModel(MapModel mapModel) {
+        this.mapModel = mapModel;
+    }
+
+    public void setCurrentMap(String currentMap) {
+        this.currentMap = currentMap;
+    }
+
+    public String[] getMaps() {
+        return maps;
+    }
+
+    public void setMaps(String[] maps) {
+        this.maps = maps;
+    }
+
+    public void setCurrentSave(String currentSave) {
+        this.currentSave = currentSave;
+    }
+
+    public String[] getSaves() {
+        return saves;
+    }
+
+    public void setSaves(String[] saves) {
+        this.saves = saves;
     }
 }
